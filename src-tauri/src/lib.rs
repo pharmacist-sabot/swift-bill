@@ -135,7 +135,8 @@ async fn preview_receiving_summary(
     let n = invoices.len() as u32;
     let (next_reg_no, next_running) =
         reports::compute_next_reg(&params.start_reg_no, params.start_running, n);
-    let next_po_no = params.start_po_no + n;
+    // request_no increments +2 per row, so the next batch must start at start_po_no + n*2
+    let next_po_no = params.start_po_no + n * 2;
 
     let rows = reports::process_receiving_summary(&invoices, &params);
     let total_amount: f64 = invoices.iter().map(|i| i.total_cost).sum();
@@ -161,7 +162,8 @@ async fn export_receiving_summary_excel(
     let n = params.rows.len() as u32;
     let (next_reg_no, next_running) =
         reports::compute_next_reg(&params.start_reg_no, params.start_running, n);
-    let next_po_no = params.start_po_no + n;
+    // request_no increments +2 per row, so the next batch must start at start_po_no + n*2
+    let next_po_no = params.start_po_no + n * 2;
 
     let total_amount: f64 = params.rows.iter().map(|r| r.total_amount).sum();
     let total_rows = params.rows.len();

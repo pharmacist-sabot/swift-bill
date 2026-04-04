@@ -115,6 +115,27 @@ const editableRows = ref<ReceivingSummaryRow[]>([]);
 const carryForward = ref<CarryForward | null>(null);
 const exportedFile = ref<string | null>(null);
 
+// ── Thai date picker ──────────────────────────────────────────────────────
+// Holds the native <input type="date"> value (YYYY-MM-DD).
+// When changed, converts to Thai short format and emits to parent.
+const approvalDatePicker = ref("");
+
+function toThaiShortDate(htmlDate: string): string {
+    if (!htmlDate) return "";
+    const parts = htmlDate.split("-");
+    if (parts.length !== 3) return "";
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return "";
+    const thaiYear = (year + 543) % 100;
+    return `${day} ${THAI_MONTHS_SHORT[month - 1] ?? ""} ${thaiYear}`;
+}
+
+function onApprovalDatePick() {
+    emit("update:approvalDate", toThaiShortDate(approvalDatePicker.value));
+}
+
 const periodText = computed(() => {
     if (!props.year || !props.month) return "ยังไม่ได้เลือกช่วงวันที่";
     return `${THAI_MONTHS[props.month - 1]} ${props.year} รอบ ${props.round}`;
@@ -319,10 +340,16 @@ function saveToHistory() {
             </div>
             <div class="form-group">
                 <label>วันที่ขออนุมัติ (แสดงบนเอกสาร)</label>
-                <input type="text" :value="approvalDate"
-                    @input="emit('update:approvalDate', ($event.target as HTMLInputElement).value)"
-                    placeholder="เช่น 6 พ.ย. 68" />
-                <span class="field-hint">ปล่อยว่าง = ใช้วันที่รับของจากบิลแรก</span>
+                <div class="date-picker-row">
+                    <input type="date" v-model="approvalDatePicker" @change="onApprovalDatePick"
+                        class="date-input-cal" />
+                    <button v-if="approvalDate || approvalDatePicker" type="button" class="date-clear-btn"
+                        @click="approvalDatePicker = ''; emit('update:approvalDate', '')" title="ล้างวันที่">✕</button>
+                </div>
+                <span v-if="approvalDate" class="field-hint date-thai-preview">
+                    📅 {{ approvalDate }}
+                </span>
+                <span v-else class="field-hint">ปล่อยว่าง = ใช้วันที่รับของจากบิลแรก</span>
             </div>
         </div>
 
@@ -457,6 +484,56 @@ function saveToHistory() {
 </template>
 
 <style scoped>
+.date-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.date-input-cal {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1.5px solid var(--clr-border, #d1d5db);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--clr-surface, #fff);
+    color: var(--clr-text, #111827);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.date-input-cal:focus {
+    outline: none;
+    border-color: var(--clr-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.date-clear-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--clr-text-muted, #6b7280);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.date-clear-btn:hover {
+    background: var(--clr-danger-bg, #fee2e2);
+    color: var(--clr-danger, #dc2626);
+}
+
+.date-thai-preview {
+    color: var(--clr-primary, #2563eb);
+    font-weight: 600;
+}
+
 .report-wrap {
     width: 100%;
 }

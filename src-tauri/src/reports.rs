@@ -120,7 +120,20 @@ pub fn process_receiving_summary(
     let mut report_no = params.start_po_no + 1;
     let mut po_no = params.start_purchase_no;
 
-    let approval_date_str = params.approval_date.clone().unwrap_or_default();
+    // If approval_date is absent or blank, fall back to the first invoice's
+    // receive_date — matching the UI hint "ปล่อยว่าง = ใช้วันที่รับของจากบิลแรก"
+    // and the same pattern used in process_cover_letters.
+    let approval_date_str = params
+        .approval_date
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_owned())
+        .unwrap_or_else(|| {
+            invoices
+                .first()
+                .map(|inv| format_thai_date(&inv.receive_date))
+                .unwrap_or_default()
+        });
 
     for (i, inv) in invoices.iter().enumerate() {
         let (reg_num, running) =
@@ -517,5 +530,125 @@ mod tests {
         let (next_reg, next_run) = compute_next_reg("69ภ12", 8, 2);
         assert_eq!(next_reg, "69ภ13");
         assert_eq!(next_run, 0);
+    }
+
+    // ── next_po_no carry-forward: must advance by n*2 not n ──────────────
+
+    /// After processing n=3 invoices starting at start_po_no=253,
+    /// the last request_no used is 253 + (3-1)*2 = 257.
+    /// Therefore the next batch must start at 253 + 3*2 = 259.
+    #[test]
+    fn test_next_po_no_carry_forward_correct() {
+        let invoices = sample_invoices(); // 3 invoices
+        let params = sample_summary_params(); // start_po_no = 253
+        let rows = process_receiving_summary(&invoices, &params);
+
+        assert_eq!(rows.len(), 3);
+
+        // Last request_no in this batch is 257 (253 + 2*2)
+        assert_eq!(rows[2].request_no, 257);
+
+        // The next batch must start at 259 (253 + 3*2), NOT 256 (253 + 3)
+        let n = rows.len() as u32;
+        let expected_next_po_no = params.start_po_no + n * 2;
+        assert_eq!(
+            expected_next_po_no, 259,
+            "next_po_no must be start_po_no + n*2 so the next batch starts after the last used pair"
+        );
+
+        // Confirm the wrong value (n instead of n*2) would collide with existing numbers
+        let wrong_next_po_no = params.start_po_no + n; // 256 — already used as report_no
+        assert_eq!(rows[1].report_no, 256);
+        assert_ne!(
+            wrong_next_po_no, expected_next_po_no,
+            "start_po_no + n would collide with an already-issued report_no"
+        );
+    }
+
+    /// Round-trip: second batch starts at 259 and its numbers do not overlap
+    /// with the first batch's numbers (253–258).
+    #[test]
+    fn test_next_po_no_no_overlap_between_rounds() {
+        let invoices = sample_invoices(); // 3 invoices
+        let mut params = sample_summary_params(); // start_po_no = 253
+        let n = invoices.len() as u32;
+        let next_po_no = params.start_po_no + n * 2; // 259
+
+        // Simulate round 2 starting where round 1 left off
+        params.start_po_no = next_po_no;
+        params.start_purchase_no = params.start_purchase_no + n; // 256
+        params.round = 2;
+
+        let rows2 = process_receiving_summary(&invoices, &params);
+
+        // Round 2 request numbers: 259, 261, 263
+        assert_eq!(rows2[0].request_no, 259);
+        assert_eq!(rows2[1].request_no, 261);
+        assert_eq!(rows2[2].request_no, 263);
+
+        // Round 2 report numbers: 260, 262, 264
+        assert_eq!(rows2[0].report_no, 260);
+        assert_eq!(rows2[1].report_no, 262);
+        assert_eq!(rows2[2].report_no, 264);
+
+        // Round 2 po_no (purchase): 256, 257, 258
+        assert_eq!(rows2[0].po_no, 256);
+        assert_eq!(rows2[1].po_no, 257);
+        assert_eq!(rows2[2].po_no, 258);
+    }
+
+    // ── approval_date fallback ────────────────────────────────────────────
+
+    /// When approval_date is None the field should fall back to the first
+    /// invoice's receive_date in Thai short format — same as cover letters.
+    #[test]
+    fn test_approval_date_fallback_to_first_receive_date() {
+        let invoices = sample_invoices();
+        let mut params = sample_summary_params();
+        params.approval_date = None; // explicit None
+
+        let rows = process_receiving_summary(&invoices, &params);
+
+        // First invoice receive_date is 2026-01-05 → Thai "5 ม.ค. 69"
+        let expected = "5 ม.ค. 69";
+        for row in &rows {
+            assert_eq!(
+                row.approval_date, expected,
+                "all rows should carry the fallback date when approval_date is None"
+            );
+        }
+    }
+
+    /// When approval_date is Some("") (empty string) it should also fall back.
+    #[test]
+    fn test_approval_date_fallback_when_empty_string() {
+        let invoices = sample_invoices();
+        let mut params = sample_summary_params();
+        params.approval_date = Some(String::new()); // empty string
+
+        let rows = process_receiving_summary(&invoices, &params);
+
+        let expected = "5 ม.ค. 69";
+        assert_eq!(
+            rows[0].approval_date, expected,
+            "empty-string approval_date must fall back to first invoice receive_date"
+        );
+    }
+
+    /// When approval_date is explicitly provided it must be used as-is.
+    #[test]
+    fn test_approval_date_explicit_value_used() {
+        let invoices = sample_invoices();
+        let mut params = sample_summary_params();
+        params.approval_date = Some("20 ก.พ. 69".to_string());
+
+        let rows = process_receiving_summary(&invoices, &params);
+
+        for row in &rows {
+            assert_eq!(
+                row.approval_date, "20 ก.พ. 69",
+                "explicitly provided approval_date must appear on every row unchanged"
+            );
+        }
     }
 }
