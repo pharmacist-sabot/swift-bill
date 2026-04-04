@@ -46,15 +46,15 @@ const SOURCE_PNG = path.join(ICONS_DIR, "icon.png");
 const ICON_SVG = `<svg
   width="1024"
   height="1024"
-  viewBox="-3 -3 30 30"
+  viewBox="0 0 24 24"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
   <defs>
     <!--
       Soft drop-shadow filter.
-      stdDeviation is kept small (0.5) because in the 30-unit viewBox each
-      unit maps to ~34 px at 1024 px; a value of 0.5 ≈ 17 px at source
+      stdDeviation is kept small (0.5) because in the 24-unit viewBox each
+      unit maps to ~42 px at 1024 px; a value of 0.5 ≈ 21 px at source
       resolution, which looks natural and scales down gracefully.
     -->
     <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
