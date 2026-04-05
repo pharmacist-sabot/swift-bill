@@ -1,6 +1,6 @@
 [package]
 name = "swift-bill"
-version = "0.3.1"
+version = "0.3.2"
 description = "Swift Bill - Hospital Pharmaceutical Disbursement Reports"
 authors = ["Sarabot Hospital"]
 edition = "2021"

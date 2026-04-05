@@ -316,7 +316,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     <!-- Footer -->
     <footer class="app-footer">
         <span class="footer-left">Copyright &copy; 2025 ภก.สุรเดช ประถมศักดิ์ &nbsp;·&nbsp; โรงพยาบาลสระโบสถ์
-            &nbsp;·&nbsp; Swift Bill v0.3</span>
+            &nbsp;·&nbsp; Swift Bill v0.3.2</span>
         <span class="footer-right">
             <span v-if="dbConnected === true" class="conn-status conn-ok">● เชื่อมต่อแล้ว</span>
             <span v-else-if="dbConnected === false" class="conn-status conn-fail">● ยังไม่ได้เชื่อมต่อ</span>
