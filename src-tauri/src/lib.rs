@@ -3,6 +3,7 @@ mod excel;
 mod history;
 mod models;
 mod pdf;
+mod pdf_template;
 mod queries;
 mod reports;
 
@@ -213,7 +214,7 @@ async fn generate_cover_letters(params: CoverLettersParams) -> Result<GenerateRe
         output_dir,
         ..params
     };
-    let file = pdf::generate_cover_letters_pdf(&pages, &params_out)?;
+    let file = pdf_template::generate(&pages, &params_out)?;
 
     Ok(GenerateResult {
         files: vec![file],
