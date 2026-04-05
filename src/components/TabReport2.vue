@@ -271,13 +271,13 @@ function saveToHistory() {
 
 <template>
 <div class="report-wrap">
-    <!-- ── Info banner ── -->
+    <!-- Info banner -->
     <div class="card info-banner">
         <div class="banner-title">📊 สรุปรับยา (Receiving Summary)</div>
         <div class="banner-desc">สร้างสรุปยอดรับยาประจำเดือน</div>
     </div>
 
-    <!-- ── Data summary ── -->
+    <!-- Data summary -->
     <div class="card">
         <div class="card-title">📊 ข้อมูลที่จะใช้สร้างรายงาน</div>
         <div v-if="!previewData" class="no-data">
@@ -301,7 +301,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Report params ── -->
+    <!-- Report params -->
     <div class="card">
         <div class="card-title">🔢 ตั้งค่าเลขที่เอกสาร</div>
         <div class="card-desc">ค่าเหล่านี้ต่อเนื่องจากรอบก่อน — สามารถโหลดจากประวัติรอบได้</div>
@@ -375,7 +375,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Editable preview table ── -->
+    <!-- Editable preview table -->
     <div v-if="editableRows.length > 0" class="card">
         <div class="card-title">✏️ ตัวอย่างข้อมูล (แก้ไขได้)</div>
         <div class="card-desc">ตรวจสอบและแก้ไขข้อมูลก่อนส่งออก Excel — คอลัมน์สีเทาคำนวณอัตโนมัติ</div>
@@ -442,7 +442,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Export result ── -->
+    <!-- Export result -->
     <div v-if="exportedFile" class="card">
         <div class="card-title">✅ ส่งออก Excel สำเร็จ</div>
 
@@ -581,7 +581,7 @@ function saveToHistory() {
     margin-top: 22px;
 }
 
-/* ── Editable table ──────────────────────────────────────────────────────── */
+/* Editable table */
 
 .edit-table {
     min-width: 1100px;
@@ -637,7 +637,7 @@ function saveToHistory() {
     color: var(--c-primary);
 }
 
-/* ── Result ──────────────────────────────────────────────────────────────── */
+/* Result */
 
 .file-path {
     font-size: 11px;

@@ -26,15 +26,11 @@ use crate::models::{
     ReceivingSummaryParams, ReceivingSummaryRow,
 };
 
-// ---------------------------------------------------------------------------
 // Embedded fonts (compiled into the binary)
-// ---------------------------------------------------------------------------
 const FONT_REGULAR: &[u8] = include_bytes!("THSarabun.ttf");
 const FONT_BOLD: &[u8] = include_bytes!("THSarabunBold.ttf");
 
-// ---------------------------------------------------------------------------
 // Page dimensions in mm
-// ---------------------------------------------------------------------------
 const A4_LAND_W: f64 = 297.0;
 const A4_LAND_H: f64 = 210.0;
 const A4_PORT_W: f64 = 210.0;
@@ -49,9 +45,7 @@ const A4_LAND_H_F: f32 = 210.0;
 const A4_PORT_W_F: f32 = 210.0;
 const A4_PORT_H_F: f32 = 297.0;
 
-// ---------------------------------------------------------------------------
 // Unit helpers
-// ---------------------------------------------------------------------------
 #[inline]
 fn mm(v: f64) -> Pt {
     Mm(v as f32).into()
@@ -62,9 +56,7 @@ fn pt_f(v: f64) -> Pt {
     Pt(v as f32)
 }
 
-// ---------------------------------------------------------------------------
 // Number formatter: thousands-separated, 2 decimal places
-// ---------------------------------------------------------------------------
 fn fmt_money(v: f64) -> String {
     let s = format!("{:.2}", v);
     let (int_s, dec_s) = s.split_once('.').unwrap_or((&s, "00"));
@@ -85,9 +77,7 @@ fn fmt_money(v: f64) -> String {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Thai month name
-// ---------------------------------------------------------------------------
 fn thai_month(m: u32) -> &'static str {
     match m {
         1 => "มกราคม",
@@ -106,9 +96,7 @@ fn thai_month(m: u32) -> &'static str {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Context that carries fonts + page dimensions for building Op streams
-// ---------------------------------------------------------------------------
 struct PageCtx {
     #[allow(dead_code)]
     font_id: FontId,
@@ -126,9 +114,7 @@ impl PageCtx {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Op-stream builder helpers
-// ---------------------------------------------------------------------------
 
 /// Append ops to place a text string at (x_mm, top_y_mm).
 fn op_text(
@@ -359,9 +345,7 @@ fn op_box_rect(ops: &mut Vec<Op>, ctx: &PageCtx, x: f64, top_y: f64, w: f64, h: 
     });
 }
 
-// ---------------------------------------------------------------------------
 // Font loading helpers
-// ---------------------------------------------------------------------------
 fn load_fonts(doc: &mut PdfDocument) -> Result<(FontId, FontId), String> {
     let font_reg = ParsedFont::from_bytes(FONT_REGULAR, 0, &mut Vec::new())
         .ok_or_else(|| "Failed to parse regular font".to_string())?;
@@ -372,18 +356,14 @@ fn load_fonts(doc: &mut PdfDocument) -> Result<(FontId, FontId), String> {
     Ok((id_reg, id_bld))
 }
 
-// ---------------------------------------------------------------------------
 // Save helper
-// ---------------------------------------------------------------------------
 fn save_pdf(doc: &PdfDocument, path: &str) -> Result<(), String> {
     let mut warnings: Vec<PdfWarnMsg> = Vec::new();
     let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
     fs::write(path, &bytes).map_err(|e| format!("Cannot write PDF to {path}: {e}"))
 }
 
-// ============================================================================
 // FILE 1 – ส่งหนี้เบิกยา  (Invoice Submission List)  – A4 Landscape
-// ============================================================================
 
 pub fn generate_invoice_submission_pdf(
     rows: &[InvoiceSubmissionRow],
@@ -836,9 +816,7 @@ pub fn generate_invoice_submission_pdf(
     Ok(path_str)
 }
 
-// ============================================================================
 // FILE 2 – สรุปรับยา  (Receiving Summary)  – A4 Landscape
-// ============================================================================
 
 pub fn generate_receiving_summary_pdf(
     rows: &[ReceivingSummaryRow],
@@ -1259,9 +1237,7 @@ pub fn generate_receiving_summary_pdf(
     Ok(path_str)
 }
 
-// ============================================================================
 // FILE 3 – เบิกยาปะหน้า  (Cover Letters)  – A4 Portrait, single PDF for all invoices
-// ============================================================================
 
 pub fn generate_cover_letters_pdf(
     pages: &[CoverLetterPage],
@@ -1270,10 +1246,8 @@ pub fn generate_cover_letters_pdf(
     generate_combined_cover(pages, params)
 }
 
-// ============================================================================
 // Helper to generate a single cover letter page (used by combined PDF)
 // Returns the Ops for one complete cover letter
-// ============================================================================
 
 fn build_cover_letter_ops(
     page: &CoverLetterPage,

@@ -46,7 +46,7 @@ const icons: Record<string, string> = {
 </template>
 
 <style>
-/* ── Toast Container ─────────────────────────────────────────────────────────── */
+/* Toast Container */
 .toast-container {
     position: fixed;
     top: 16px;
@@ -60,7 +60,7 @@ const icons: Record<string, string> = {
     width: 100%;
 }
 
-/* ── Individual Toast ────────────────────────────────────────────────────────── */
+/* Individual Toast */
 .toast {
     pointer-events: auto;
     display: flex;
@@ -80,7 +80,7 @@ const icons: Record<string, string> = {
     min-width: 320px;
 }
 
-/* ── Type variants ───────────────────────────────────────────────────────────── */
+/* Type variants */
 .toast--success {
     border-left: 4px solid #16A34A;
     color: #166534;
@@ -117,7 +117,7 @@ const icons: Record<string, string> = {
     background: linear-gradient(90deg, #C8102E, #E03050);
 }
 
-/* ── Toast children ──────────────────────────────────────────────────────────── */
+/* Toast children */
 .toast__icon {
     flex-shrink: 0;
     width: 20px;
@@ -171,7 +171,7 @@ const icons: Record<string, string> = {
     color: #C8102E;
 }
 
-/* ── Progress bar ────────────────────────────────────────────────────────────── */
+/* Progress bar */
 .toast__progress {
     position: absolute;
     bottom: 0;
@@ -187,7 +187,7 @@ const icons: Record<string, string> = {
     transition: width 0.05s linear;
 }
 
-/* ── Transitions ─────────────────────────────────────────────────────────────── */
+/* Transitions */
 .toast-enter-active {
     animation: toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -222,7 +222,7 @@ const icons: Record<string, string> = {
     }
 }
 
-/* ── Dark Mode ───────────────────────────────────────────────────────────────── */
+/* Dark Mode */
 @media (prefers-color-scheme: dark) {
     .toast {
         background: #220A08;

@@ -1,4 +1,4 @@
-# 🤖 System Architecture & Agent Instructions — Swift Bill v0.2
+# System Architecture & Agent Instructions — Swift Bill v0.3
 
 ## 1. Project Overview
 
@@ -107,7 +107,7 @@ app/src/
 | Column       | Type   | Notes             |
 | ------------ | ------ | ----------------- |
 | COMPANY_CODE | String | PK                |
-| KEY_WORD     | String |
+| KEY_WORD     | String |                   |
 | COMPANY_NAME | String | Full company name |
 
 ---

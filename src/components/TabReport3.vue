@@ -217,7 +217,7 @@ function saveToHistory() {
 
 <template>
 <div class="report-wrap">
-    <!-- ── Info banner ── -->
+    <!-- Info banner -->
     <div class="card info-banner">
         <div class="banner-title">📄 เบิกยาปะหน้า (Disbursement Cover Letters)</div>
         <div class="banner-desc">
@@ -225,7 +225,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Data summary ── -->
+    <!-- Data summary -->
     <div class="card">
         <div class="card-title">📊 ข้อมูลที่จะใช้สร้างรายงาน</div>
 
@@ -250,7 +250,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Budget params ── -->
+    <!-- Budget params -->
     <div class="card">
         <div class="card-title">💰 ตั้งค่างบประมาณ</div>
         <div class="card-desc">
@@ -346,7 +346,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Result ── -->
+    <!-- Result -->
     <div v-if="result" class="card">
         <div class="card-title">✅ สร้าง PDF สำเร็จ</div>
 
@@ -443,7 +443,7 @@ function saveToHistory() {
     width: 100%;
 }
 
-/* ── Info banner ─────────────────────────────────────────────────────────────── */
+/* Info banner */
 .info-banner {
     background: linear-gradient(135deg, var(--c-primary-light) 0%, #FFD8C8 100%);
     border-color: #F0C4B8;
@@ -461,7 +461,7 @@ function saveToHistory() {
     color: var(--c-primary-mid);
 }
 
-/* ── No-data placeholder ─────────────────────────────────────────────────────── */
+/* No-data placeholder */
 .no-data {
     text-align: center;
     padding: 22px;
@@ -479,7 +479,7 @@ function saveToHistory() {
     margin-top: 22px;
 }
 
-/* ── Budget preview calculation ──────────────────────────────────────────────── */
+/* Budget preview calculation */
 /* #5C2C1E on #FFF0EC → ~11:1 ✓ */
 .budget-preview {
     background: var(--c-primary-light);
@@ -553,7 +553,7 @@ function saveToHistory() {
     color: var(--c-error);
 }
 
-/* ── Result section ──────────────────────────────────────────────────────────── */
+/* Result section */
 .file-path {
     font-size: 11px;
     color: var(--c-text-muted);
@@ -593,7 +593,7 @@ function saveToHistory() {
     gap: 10px;
 }
 
-/* ── Dark mode overrides ─────────────────────────────────────────────────────── */
+/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
     .info-banner {
         background: linear-gradient(135deg, #2A0808 0%, #350A0A 100%);

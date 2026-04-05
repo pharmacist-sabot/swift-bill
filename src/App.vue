@@ -235,7 +235,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
 
 <template>
 <div class="app-root">
-    <!-- ── Header ───────────────────────────────────────────────────────── -->
+    <!-- Header -->
     <header class="app-header">
         <div class="header-inner">
             <span class="header-icon">
@@ -277,7 +277,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
         </div>
     </header>
 
-    <!-- ── Tab Nav ──────────────────────────────────────────────────────── -->
+    <!-- Tab Nav -->
     <nav class="tab-nav">
         <button v-for="tab in tabs" :key="tab.id" class="tab-btn" :class="{ active: activeTab === tab.id }"
             @click="activeTab = tab.id">
@@ -286,7 +286,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
         </button>
     </nav>
 
-    <!-- ── Main Content ─────────────────────────────────────────────────── -->
+    <!-- Main Content -->
     <main class="main-content">
         <TabSettings v-show="activeTab === 'settings'" :db-config="dbConfig"
             @update:db-config="Object.assign(dbConfig, $event)" @save="saveDbConfig"
@@ -313,7 +313,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
             @delete-entry="deleteEntry" />
     </main>
 
-    <!-- ── Footer ───────────────────────────────────────────────────────── -->
+    <!-- Footer -->
     <footer class="app-footer">
         <span class="footer-left">Copyright &copy; 2025 ภก.สุรเดช ประถมศักดิ์ &nbsp;·&nbsp; โรงพยาบาลสระโบสถ์
             &nbsp;·&nbsp; Swift Bill v0.3</span>
@@ -324,13 +324,13 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
         </span>
     </footer>
 
-    <!-- ── Toast Notifications ──────────────────────────────────────────── -->
+    <!-- Toast Notifications -->
     <ToastContainer />
 </div>
 </template>
 
 <style>
-/* ── Reset ───────────────────────────────────────────────────────────────────── */
+/* Reset */
 *,
 *::before,
 *::after {
@@ -339,10 +339,10 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     padding: 0;
 }
 
-/* ── Design System: Colonel's Classic — KFC Red & Cream ─────────────────────── */
+/* Design System: Colonel's Classic — KFC Red & Cream */
 /* All contrast ratios verified against WCAG AA (≥ 4.5:1 normal / ≥ 3:1 large)  */
 :root {
-    /* ── Primary KFC Red ─────────────────────────────────────────────────────── */
+    /* Primary KFC Red */
     /* white on #C8102E → 8.6:1 ✓   #C8102E on #FFF0EC → 7.8:1 ✓               */
     --c-primary: #C8102E;
     --c-primary-light: #FFF0EC;
@@ -352,7 +352,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     --c-primary-hover: #A50026;
     /* deeper red on hover                       */
 
-    /* ── Semantic colours ─────────────────────────────────────────────────────── */
+    /* Semantic colours */
     --c-success: #166534;
     --c-success-bg: #f0fdf4;
     --c-error: #b91c1c;
@@ -360,7 +360,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     --c-warn: #92400e;
     --c-warn-bg: #fefce8;
 
-    /* ── Layout / surface ─────────────────────────────────────────────────────── */
+    /* Layout / surface */
     --c-bg: #FBF3EC;
     /* warm cream page background                     */
     --c-surface: #FFFCF9;
@@ -370,7 +370,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     --c-border-focus: #C8102E;
     /* red focus ring                                 */
 
-    /* ── Text ─────────────────────────────────────────────────────────────────── */
+    /* Text */
     /* #1C0A05 on #FFFCF9 → ~19:1 ✓                                               */
     /* #5C2C1E on #FFFCF9 → ~11.5:1 ✓                                             */
     /* #9C6A58 on #FFFCF9 →  ~4.6:1 ✓  (hints only)                              */
@@ -378,7 +378,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     --c-text-muted: #5C2C1E;
     --c-text-light: #9C6A58;
 
-    /* ── Shape & depth ────────────────────────────────────────────────────────── */
+    /* Shape & depth */
     --radius: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
@@ -398,7 +398,7 @@ body {
     min-height: 100vh;
 }
 
-/* ── App Shell ───────────────────────────────────────────────────────────────── */
+/* App Shell */
 .app-root {
     display: flex;
     flex-direction: column;
@@ -406,7 +406,7 @@ body {
     overflow: hidden;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────────── */
+/* Header */
 .app-header {
     background: linear-gradient(135deg, #C8102E 0%, #8B0000 100%);
     color: #fff;
@@ -466,7 +466,7 @@ body {
     box-shadow: 0 0 7px rgba(255, 190, 160, 0.80);
 }
 
-/* ── Tab Nav ──────────────────────────────────────────────────────────────────── */
+/* Tab Nav */
 .tab-nav {
     display: flex;
     background: var(--c-surface);
@@ -516,7 +516,7 @@ body {
     font-size: 14px;
 }
 
-/* ── Main Content ─────────────────────────────────────────────────────────────── */
+/* Main Content */
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -524,7 +524,7 @@ body {
     background: var(--c-bg);
 }
 
-/* ── Footer ───────────────────────────────────────────────────────────────────── */
+/* Footer */
 .app-footer {
     background: var(--c-surface);
     border-top: 1px solid var(--c-border);
@@ -568,7 +568,7 @@ body {
     color: var(--c-text-muted);
 }
 
-/* ─── Shared component styles ─────────────────────────────────────────────────── */
+/* Shared component styles */
 
 /* Card */
 .card {
@@ -1059,7 +1059,7 @@ body {
     margin-bottom: 14px;
 }
 
-/* ── Dark Mode ────────────────────────────────────────────────────────────────── */
+/* Dark Mode */
 /* All text/bg contrast re-verified for dark palette                              */
 @media (prefers-color-scheme: dark) {
     :root {

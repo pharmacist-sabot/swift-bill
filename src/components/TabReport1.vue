@@ -236,13 +236,13 @@ function saveToHistory() {
 <template>
 <div class="report-wrap">
 
-    <!-- ── Info banner ────────────────────────────────────────────────── -->
+    <!-- Info banner -->
     <div class="card info-banner">
         <div class="banner-title">📋 ส่งหนี้เบิกยา (Invoice Submission List)</div>
         <div class="banner-desc">สร้างรายการส่งหนี้สินและเอกสารเบิกเงิน</div>
     </div>
 
-    <!-- ── Data summary from query ────────────────────────────────────── -->
+    <!-- Data summary from query -->
     <div class="card">
         <div class="card-title">📊 ข้อมูลที่จะใช้สร้างรายงาน</div>
         <div v-if="!previewData" class="no-data">
@@ -266,7 +266,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Report params ──────────────────────────────────────────────── -->
+    <!-- Report params -->
     <div class="card">
         <div class="card-title">🔢 ตั้งค่าเลขทะเบียนคุม</div>
         <div class="card-desc">ค่าเหล่านี้ต่อเนื่องจากรอบก่อน — สามารถโหลดจากประวัติรอบได้</div>
@@ -318,7 +318,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Editable preview table ──────────────────────────────────────── -->
+    <!-- Editable preview table -->
     <div v-if="editableRows.length > 0" class="card">
         <div class="card-title">✏️ ตัวอย่างข้อมูล (แก้ไขได้)</div>
         <div class="card-desc">ตรวจสอบและแก้ไขข้อมูลก่อนส่งออก Excel</div>
@@ -381,7 +381,7 @@ function saveToHistory() {
         </div>
     </div>
 
-    <!-- ── Export result ───────────────────────────────────────────────── -->
+    <!-- Export result -->
     <div v-if="exportedFile" class="card">
         <div class="card-title">✅ ส่งออก Excel สำเร็จ</div>
 
@@ -429,7 +429,7 @@ function saveToHistory() {
     width: 100%;
 }
 
-/* ── Banner ────────────────────────────────────────────────────────────── */
+/* Banner */
 .info-banner {
     background: linear-gradient(135deg, var(--c-primary-light) 0%, #FFD8C8 100%);
     border-color: #F0C4B8;
@@ -447,7 +447,7 @@ function saveToHistory() {
     color: var(--c-primary-mid);
 }
 
-/* ── No data ───────────────────────────────────────────────────────────── */
+/* No data */
 .no-data {
     text-align: center;
     padding: 20px;
@@ -461,12 +461,12 @@ function saveToHistory() {
     color: var(--c-primary) !important;
 }
 
-/* ── Actions ───────────────────────────────────────────────────────────── */
+/* Actions */
 .actions {
     margin-top: 22px;
 }
 
-/* ── Editable table ────────────────────────────────────────────────────── */
+/* Editable table */
 .edit-table td {
     padding: 4px 6px;
     vertical-align: middle;
@@ -533,7 +533,7 @@ function saveToHistory() {
     color: var(--c-primary);
 }
 
-/* ── Result card ───────────────────────────────────────────────────────── */
+/* Result card */
 .file-path {
     font-size: 11px;
     color: var(--c-text-muted);
@@ -571,7 +571,7 @@ function saveToHistory() {
     gap: 10px;
 }
 
-/* ── Dark mode ─────────────────────────────────────────────────────────── */
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
     .info-banner {
         background: linear-gradient(135deg, #2A0808 0%, #350A0A 100%);

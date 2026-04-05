@@ -385,7 +385,7 @@ function doDelete(id: string) {
     color: var(--c-text);
 }
 
-/* ── Dark Mode ────────────────────────────────────────────────────────── */
+/* Dark Mode */
 @media (prefers-color-scheme: dark) {
     .header-card {
         background: linear-gradient(135deg, #2A0808 0%, #350A0A 100%);

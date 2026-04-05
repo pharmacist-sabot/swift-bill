@@ -154,7 +154,7 @@ async function fetchData() {
 
 <template>
 <div class="query-wrap">
-    <!-- ── Date range card ── -->
+    <!-- Date range card -->
     <div class="card">
         <div class="card-title">🔍 เลือกช่วงวันที่และดึงข้อมูล</div>
         <div class="card-desc">เลือกช่วงวันที่แล้วกด "ดึงข้อมูล" เพื่อโหลดรายการบิลจาก INVS</div>
@@ -210,7 +210,7 @@ async function fetchData() {
         </div>
     </div>
 
-    <!-- ── Preview results ── -->
+    <!-- Preview results -->
     <div v-if="previewData" class="card">
         <div class="card-title">📊 ผลการดึงข้อมูล</div>
 
