@@ -1,0 +1,47 @@
+name: 'Release Windows Installer'
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Tauri Windows Installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Swift Bill ${{ github.ref_name }}'
+          releaseBody: 'ดาวน์โหลดไฟล์ตัวติดตั้ง .msi และ .exe สำหรับ Windows ได้ที่ Assets ด้านล่าง'
+          releaseDraft: false
+          prerelease: false
