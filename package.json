@@ -8,6 +8,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "fmt": "cd src-tauri && cargo fmt",
+    "fmt:check": "cd src-tauri && cargo fmt -- --check",
     "gen-icons": "node scripts/gen-icons.cjs"
   },
   "dependencies": {
