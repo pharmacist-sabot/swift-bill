@@ -1,4 +1,4 @@
-# System Architecture & Agent Instructions — Swift Bill v0.3.3
+# System Architecture & Agent Instructions — Swift Bill v0.3.4
 
 ## 1. Project Overview
 
