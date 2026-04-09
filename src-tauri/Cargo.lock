@@ -4371,7 +4371,7 @@ dependencies = [
 
 [[package]]
 name = "swift-bill"
-version = "0.3.4"
+version = "0.3.5"
 dependencies = [
  "chrono",
  "lopdf 0.32.0",
