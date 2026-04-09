@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { FolderOpen, CalendarDays, Package, Banknote, Clock, ArrowRight, Download, Check, X, Trash2, Lightbulb } from 'lucide-vue-next'
 interface RoundHistoryEntry {
     id: string;
     label: string;
@@ -73,7 +74,9 @@ function doDelete(id: string) {
 <div class="history-wrap">
     <!-- Header card -->
     <div class="card header-card">
-        <div class="card-title">📁 ประวัติรอบการทำงาน</div>
+        <div class="card-title">
+            <FolderOpen :size="17" /> ประวัติรอบการทำงาน
+        </div>
         <div class="card-desc">
             บันทึกข้อมูล carry-forward แต่ละรอบไว้ที่นี่ เพื่อดึงค่าไปใช้ในรอบถัดไปได้ทันที
             (บันทึกได้จากแต่ละหน้ารายงานหลังสร้าง PDF สำเร็จ)
@@ -82,10 +85,12 @@ function doDelete(id: string) {
 
     <!-- Empty state -->
     <div v-if="entries.length === 0" class="card empty-card">
-        <div class="empty-icon">📂</div>
+        <div class="empty-icon">
+            <FolderOpen :size="52" stroke-width="1.5" />
+        </div>
         <div class="empty-title">ยังไม่มีประวัติรอบ</div>
         <div class="empty-desc">
-            หลังจากสร้าง PDF แต่ละรายงานสำเร็จ กด "💾 บันทึกรอบนี้สู่ประวัติ"
+            หลังจากสร้าง PDF แต่ละรายงานสำเร็จ กด "บันทึกรอบนี้สู่ประวัติ"
             เพื่อบันทึก carry-forward ไว้ใช้งานรอบถัดไป
         </div>
     </div>
@@ -101,17 +106,26 @@ function doDelete(id: string) {
                     <span v-if="entry.source_tab" class="source-tab-badge">{{ entry.source_tab }}</span>
                 </div>
                 <div class="entry-meta">
-                    <span class="meta-chip">📅 {{ formatDate(entry.date_from) }} – {{ formatDate(entry.date_to)
-                    }}</span>
-                    <span class="meta-chip">📦 {{ entry.invoice_count }} บิล</span>
-                    <span class="meta-chip money">💰 {{ formatMoney(entry.total_amount) }} บาท</span>
-                    <span class="meta-chip muted">🕐 {{ formatCreatedAt(entry.created_at) }}</span>
+                    <span class="meta-chip">
+                        <CalendarDays :size="12" /> {{ formatDate(entry.date_from) }} – {{ formatDate(entry.date_to) }}
+                    </span>
+                    <span class="meta-chip">
+                        <Package :size="12" /> {{ entry.invoice_count }} บิล
+                    </span>
+                    <span class="meta-chip money">
+                        <Banknote :size="12" /> {{ formatMoney(entry.total_amount) }} บาท
+                    </span>
+                    <span class="meta-chip muted">
+                        <Clock :size="12" /> {{ formatCreatedAt(entry.created_at) }}
+                    </span>
                 </div>
             </div>
 
             <!-- Carry-forward values -->
             <div class="carry-section">
-                <div class="carry-title">➡️ ค่า Carry-Forward สำหรับรอบถัดไป (รอบ {{ entry.round + 1 }})</div>
+                <div class="carry-title">
+                    <ArrowRight :size="14" /> ค่า Carry-Forward สำหรับรอบถัดไป (รอบ {{ entry.round + 1 }})
+                </div>
                 <div class="carry-values">
                     <div class="cv-item">
                         <span class="cv-label">เลขทะเบียนคุม</span>
@@ -140,19 +154,19 @@ function doDelete(id: string) {
             <!-- Actions -->
             <div class="entry-actions">
                 <button class="btn btn-primary" @click="emit('loadEntry', entry)">
-                    📥 โหลดค่านี้ไปใช้รอบถัดไป
+                    <Download :size="15" /> โหลดค่านี้ไปใช้รอบถัดไป
                 </button>
                 <template v-if="confirmingId === entry.id">
                     <span class="confirm-text">ยืนยันลบรอบนี้?</span>
                     <button class="btn btn-danger" @click="doDelete(entry.id)">
-                        ✓ ยืนยันลบ
+                        <Check :size="15" /> ยืนยันลบ
                     </button>
                     <button class="btn btn-secondary" @click="confirmingId = null">
-                        ✕ ยกเลิก
+                        <X :size="15" /> ยกเลิก
                     </button>
                 </template>
                 <button v-else class="btn btn-danger" @click="confirmingId = entry.id">
-                    🗑️ ลบ
+                    <Trash2 :size="15" /> ลบ
                 </button>
             </div>
         </div>
@@ -160,11 +174,13 @@ function doDelete(id: string) {
 
     <!-- How to use -->
     <div class="card tip-card">
-        <div class="card-title">💡 วิธีใช้งานประวัติรอบ</div>
+        <div class="card-title">
+            <Lightbulb :size="17" /> วิธีใช้งานประวัติรอบ
+        </div>
         <ol class="tip-list">
-            <li>สร้าง PDF แต่ละรายงานสำเร็จแล้ว → กด <strong>💾 บันทึกรอบนี้สู่ประวัติ</strong></li>
-            <li>เมื่อเริ่มรอบใหม่ → กด <strong>📥 โหลดค่านี้ไปใช้รอบถัดไป</strong></li>
-            <li>ระบบจะ pre-fill ค่า carry-forward ให้ทุกแท็บอัตโนมัติ และสลับไปแท็บ 🔍 ดึงข้อมูล</li>
+            <li>สร้าง PDF แต่ละรายงานสำเร็จแล้ว → กด <strong>บันทึกรอบนี้สู่ประวัติ</strong></li>
+            <li>เมื่อเริ่มรอบใหม่ → กด <strong>โหลดค่านี้ไปใช้รอบถัดไป</strong></li>
+            <li>ระบบจะ pre-fill ค่า carry-forward ให้ทุกแท็บอัตโนมัติ และสลับไปแท็บ ดึงข้อมูล</li>
             <li>เลือกช่วงวันที่ใหม่ → ดึงข้อมูล → สร้างรายงานได้เลย</li>
         </ol>
     </div>
@@ -189,8 +205,10 @@ function doDelete(id: string) {
 }
 
 .empty-icon {
-    font-size: 52px;
+    color: var(--c-text-light);
     margin-bottom: 18px;
+    display: flex;
+    justify-content: center;
 }
 
 .empty-title {

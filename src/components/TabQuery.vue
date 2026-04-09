@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useToast } from "../composables/useToast";
+import { Search, CalendarDays, AlertTriangle, XCircle, BarChart3, Pill, Package, FolderOpen } from 'lucide-vue-next'
 
 const toast = useToast();
 
@@ -156,7 +157,9 @@ async function fetchData() {
 <div class="query-wrap">
     <!-- Date range card -->
     <div class="card">
-        <div class="card-title">🔍 เลือกช่วงวันที่และดึงข้อมูล</div>
+        <div class="card-title">
+            <Search :size="17" /> เลือกช่วงวันที่และดึงข้อมูล
+        </div>
         <div class="card-desc">เลือกช่วงวันที่แล้วกด "ดึงข้อมูล" เพื่อโหลดรายการบิลจาก INVS</div>
 
         <div class="form-grid-2" style="margin-top:12px">
@@ -183,7 +186,7 @@ async function fetchData() {
                         @input="emit('update:outputDir', ($event.target as HTMLInputElement).value)"
                         placeholder="เช่น C:\Reports หรือ /Users/me/Documents (ปล่อยว่าง = โฟลเดอร์ปัจจุบัน)" />
                     <button class="btn btn-browse" @click="browseFolder" type="button" title="เลือกโฟลเดอร์">
-                        📂 เลือก
+                        <FolderOpen :size="15" /> เลือก
                     </button>
                 </div>
                 <span class="field-hint">ระบบจะสร้างโฟลเดอร์ย่อย output/ ภายในโฟลเดอร์ที่ระบุ</span>
@@ -191,28 +194,30 @@ async function fetchData() {
         </div>
 
         <div v-if="startDateHtml && endDateHtml" class="period-badge">
-            📅 {{ periodLabel }}
+            <CalendarDays :size="14" /> {{ periodLabel }}
         </div>
 
         <div v-if="!isDbReady" class="status-msg status-warn" style="margin-top:12px">
-            ⚠️ กรุณาตั้งค่าการเชื่อมต่อฐานข้อมูลก่อน (แท็บ ⚙️ ฐานข้อมูล)
+            <AlertTriangle :size="14" /> กรุณาตั้งค่าการเชื่อมต่อฐานข้อมูลก่อน (แท็บ ฐานข้อมูล)
         </div>
 
         <div class="actions">
             <button class="btn btn-primary btn-lg" :disabled="!canFetch || loading" @click="fetchData">
                 <span v-if="loading" class="spinner"></span>
-                {{ loading ? "กำลังโหลดข้อมูล..." : "🔍 ดึงข้อมูล" }}
+                {{ loading ? "กำลังโหลดข้อมูล..." : "ดึงข้อมูล" }}
             </button>
         </div>
 
         <div v-if="error" class="status-msg status-error" style="margin-top:12px">
-            ❌ {{ error }}
+            <XCircle :size="14" /> {{ error }}
         </div>
     </div>
 
     <!-- Preview results -->
     <div v-if="previewData" class="card">
-        <div class="card-title">📊 ผลการดึงข้อมูล</div>
+        <div class="card-title">
+            <BarChart3 :size="17" /> ผลการดึงข้อมูล
+        </div>
 
         <!-- Summary stats -->
         <div class="preview-summary">
@@ -225,17 +230,21 @@ async function fetchData() {
                 <span class="summary-stat-value money">{{ formatMoney(previewData.total_amount) }}</span>
             </div>
             <div class="summary-stat">
-                <span class="summary-stat-label">💊 ยา</span>
+                <span class="summary-stat-label">
+                    <Pill :size="13" /> ยา
+                </span>
                 <span class="summary-stat-value">{{ drugCount }} ใบ</span>
             </div>
             <div class="summary-stat">
-                <span class="summary-stat-label">🧴 วัสดุเภสัชกรรม</span>
+                <span class="summary-stat-label">
+                    <Package :size="13" /> วัสดุเภสัชกรรม
+                </span>
                 <span class="summary-stat-value">{{ supplyCount }} ใบ</span>
             </div>
         </div>
 
         <div v-if="previewData.row_count === 0" class="empty-result">
-            ⚠️ ไม่พบข้อมูลในช่วงวันที่นี้ กรุณาเลือกช่วงวันที่ใหม่
+            <AlertTriangle :size="14" /> ไม่พบข้อมูลในช่วงวันที่นี้ กรุณาเลือกช่วงวันที่ใหม่
         </div>
 
         <div v-else class="table-wrap">
@@ -277,7 +286,9 @@ async function fetchData() {
     </div>
 
     <div v-else-if="!loading" class="card empty-card">
-        <div class="empty-icon">🔍</div>
+        <div class="empty-icon">
+            <Search :size="44" stroke-width="1.5" />
+        </div>
         <div class="empty-text">เลือกช่วงวันที่แล้วกด "ดึงข้อมูล" เพื่อดูรายการบิล</div>
         <div class="empty-hint">ข้อมูลที่ดึงมาจะถูกใช้สำหรับสร้างรายงานทั้ง 3 ระบบ</div>
     </div>
@@ -306,8 +317,10 @@ async function fetchData() {
 }
 
 .empty-icon {
-    font-size: 44px;
+    color: var(--c-text-light);
     margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
 }
 
 .empty-text {

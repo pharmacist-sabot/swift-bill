@@ -9,6 +9,8 @@ import TabReport3 from "./components/TabReport3.vue";
 import TabHistory from "./components/TabHistory.vue";
 import ToastContainer from "./components/ToastContainer.vue";
 import { useToast } from "./composables/useToast";
+import { Settings2, Database, FileText, ClipboardList, FileOutput, History } from 'lucide-vue-next'
+import type { Component } from 'vue'
 
 const toast = useToast();
 
@@ -223,14 +225,23 @@ function applyHistoryEntry(entry: RoundHistoryEntry) {
 
 // Tabs metadata
 
-const tabs: { id: TabId; icon: string; label: string }[] = [
-    { id: "settings", icon: "⚙️", label: "ฐานข้อมูล" },
-    { id: "query", icon: "🔍", label: "ดึงข้อมูล" },
-    { id: "report1", icon: "📋", label: "ส่งหนี้เบิกยา" },
-    { id: "report2", icon: "📊", label: "สรุปรับยา" },
-    { id: "report3", icon: "📄", label: "เบิกยาปะหน้า" },
-    { id: "history", icon: "📁", label: "ประวัติรอบ" },
-];
+const tabIconMap: Record<TabId, Component> = {
+    settings: Settings2,
+    query: Database,
+    report1: FileText,
+    report2: ClipboardList,
+    report3: FileOutput,
+    history: History,
+}
+
+const tabs: { id: TabId; label: string }[] = [
+    { id: "settings", label: "ฐานข้อมูล" },
+    { id: "query", label: "ดึงข้อมูล" },
+    { id: "report1", label: "ส่งหนี้เบิกยา" },
+    { id: "report2", label: "สรุปรับยา" },
+    { id: "report3", label: "เบิกยาปะหน้า" },
+    { id: "history", label: "ประวัติรอบ" },
+]
 </script>
 
 <template>
@@ -280,8 +291,8 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
     <!-- Tab Nav -->
     <nav class="tab-nav">
         <button v-for="tab in tabs" :key="tab.id" class="tab-btn" :class="{ active: activeTab === tab.id }"
-            @click="activeTab = tab.id">
-            <span class="tab-icon">{{ tab.icon }}</span>
+            @click="activeTab = (tab.id as TabId)">
+            <component :is="tabIconMap[tab.id]" :size="16" :stroke-width="2" />
             <span class="tab-label">{{ tab.label }}</span>
         </button>
     </nav>
@@ -469,30 +480,37 @@ body {
 /* Tab Nav */
 .tab-nav {
     display: flex;
+    align-items: stretch;
+    gap: 0;
     background: var(--c-surface);
     border-bottom: 2px solid var(--c-border);
     flex-shrink: 0;
-    padding: 0 4px;
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tab-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-btn {
-    flex: 1;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 7px;
-    padding: 12px 10px;
+    padding: 11px 16px;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     cursor: pointer;
     color: var(--c-text-muted);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
     transition: color 0.15s, background 0.15s, border-color 0.15s;
     white-space: nowrap;
     font-family: inherit;
+    flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -504,16 +522,10 @@ body {
     color: var(--c-primary);
     border-bottom-color: var(--c-primary);
     font-weight: 700;
-    background: var(--c-primary-light);
-}
-
-.tab-icon {
-    font-size: 17px;
-    line-height: 1;
 }
 
 .tab-label {
-    font-size: 14px;
+    font-size: 13.5px;
 }
 
 /* Main Content */
@@ -581,13 +593,13 @@ body {
 }
 
 .card-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--c-text);
-    margin-bottom: 5px;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 4px;
 }
 
 .card-desc {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/core";
+import { Settings2, Table2, Save, Plug, CheckCircle, XCircle, Loader2 } from 'lucide-vue-next'
 
 interface DbConfig {
     host: string;
@@ -37,10 +38,10 @@ const statusClass = computed(() => ({
 }));
 
 const statusIcon = computed(() => {
-    if (status.value === "success") return "✅";
-    if (status.value === "error") return "❌";
-    return "⏳";
-});
+    if (status.value === "success") return CheckCircle
+    if (status.value === "error") return XCircle
+    return Loader2
+})
 
 function update(field: keyof DbConfig, value: string | number) {
     emit("update:dbConfig", { ...props.dbConfig, [field]: value });
@@ -78,7 +79,9 @@ async function testConnection() {
 <template>
 <div class="settings-wrap">
     <div class="card">
-        <div class="card-title">⚙️ ตั้งค่าการเชื่อมต่อฐานข้อมูล</div>
+        <div class="card-title">
+            <Settings2 :size="17" /> ตั้งค่าการเชื่อมต่อฐานข้อมูล
+        </div>
         <div class="card-desc">เชื่อมต่อ SQL Server (INVS) ผ่าน TDS Protocol โดยตรง — ไม่ต้องติดตั้ง ODBC Driver</div>
 
         <div class="form-grid">
@@ -115,16 +118,19 @@ async function testConnection() {
 
         <div class="actions" style="display:flex; gap:12px; flex-wrap:wrap;">
             <button class="btn btn-success btn-lg" :disabled="!isValid" @click="saveConfig">
-                {{ saveStatus === 'saved' ? '✅ บันทึกแล้ว!' : '💾 บันทึกการตั้งค่า' }}
+                <CheckCircle v-if="saveStatus === 'saved'" :size="16" />
+                <Save v-else :size="16" />
+                {{ saveStatus === 'saved' ? 'บันทึกแล้ว!' : 'บันทึกการตั้งค่า' }}
             </button>
             <button class="btn btn-primary btn-lg" :disabled="status === 'testing' || !isValid" @click="testConnection">
                 <span v-if="status === 'testing'" class="spinner"></span>
-                {{ status === "testing" ? "กำลังทดสอบ..." : "🔗 ทดสอบการเชื่อมต่อ" }}
+                <Plug v-else :size="16" />
+                {{ status === "testing" ? "กำลังทดสอบ..." : "ทดสอบการเชื่อมต่อ" }}
             </button>
         </div>
 
         <div v-if="message" :class="['status-msg', statusClass]" style="margin-top:12px">
-            <span>{{ statusIcon }}</span>
+            <component :is="statusIcon" :size="15" />
             {{ message }}
         </div>
 
@@ -132,7 +138,9 @@ async function testConnection() {
     </div>
 
     <div class="card">
-        <div class="card-title">📋 ข้อมูลที่ระบบดึงจาก INVS</div>
+        <div class="card-title">
+            <Table2 :size="17" /> ข้อมูลที่ระบบดึงจาก INVS
+        </div>
         <table class="data-table">
             <thead>
                 <tr>

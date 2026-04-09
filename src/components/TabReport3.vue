@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { useToast } from "../composables/useToast";
+import { FileOutput, BarChart3, AlertTriangle, Wallet, CalendarDays, Calculator, XCircle, CheckCircle, ArrowRight, Save, Package, Banknote, X } from 'lucide-vue-next'
 
 interface DbConfig {
     host: string;
@@ -219,7 +220,9 @@ function saveToHistory() {
 <div class="report-wrap">
     <!-- Info banner -->
     <div class="card info-banner">
-        <div class="banner-title">📄 เบิกยาปะหน้า (Disbursement Cover Letters)</div>
+        <div class="banner-title">
+            <FileOutput :size="17" /> เบิกยาปะหน้า (Disbursement Cover Letters)
+        </div>
         <div class="banner-desc">
             สร้างบันทึกข้อความขออนุมัติเบิกเงิน — A4 Portrait PDF รวมทุกฉบับในไฟล์เดียว (1 หน้า/บิล)
         </div>
@@ -227,10 +230,12 @@ function saveToHistory() {
 
     <!-- Data summary -->
     <div class="card">
-        <div class="card-title">📊 ข้อมูลที่จะใช้สร้างรายงาน</div>
+        <div class="card-title">
+            <BarChart3 :size="17" /> ข้อมูลที่จะใช้สร้างรายงาน
+        </div>
 
         <div v-if="!previewData" class="no-data">
-            ⚠️ ยังไม่มีข้อมูล — กรุณาไปที่แท็บ 🔍 ดึงข้อมูล ก่อน
+            <AlertTriangle :size="14" /> ยังไม่มีข้อมูล — กรุณาไปที่แท็บ ดึงข้อมูล ก่อน
         </div>
         <div v-else>
             <div class="preview-summary">
@@ -252,12 +257,16 @@ function saveToHistory() {
 
     <!-- Budget params -->
     <div class="card">
-        <div class="card-title">💰 ตั้งค่างบประมาณ</div>
+        <div class="card-title">
+            <Wallet :size="17" /> ตั้งค่างบประมาณ
+        </div>
         <div class="card-desc">
             ยอดงบประมาณจะคำนวณแบบ running ต่อกันทุกบิล — โหลดค่าก่อนหน้าจากประวัติรอบได้
         </div>
 
-        <div class="section-label">📋 ข้อมูลงวด</div>
+        <div class="section-label">
+            <CalendarDays :size="14" /> ข้อมูลงวด
+        </div>
         <div class="form-grid">
             <div class="form-group">
                 <label>ปีงบประมาณ</label>
@@ -273,7 +282,9 @@ function saveToHistory() {
             </div>
         </div>
 
-        <div class="section-label" style="margin-top:16px">💰 งบประมาณ</div>
+        <div class="section-label" style="margin-top:16px">
+            <Banknote :size="14" /> งบประมาณ
+        </div>
         <div class="form-grid">
             <div class="form-group">
                 <label>ยอดเงินจัดสรรทั้งปี (บาท)</label>
@@ -295,10 +306,12 @@ function saveToHistory() {
                     <input type="date" v-model="approvalDatePicker" @change="onApprovalDatePick"
                         class="date-input-cal" />
                     <button v-if="approvalDate || approvalDatePicker" type="button" class="date-clear-btn"
-                        @click="approvalDatePicker = ''; emit('update:approvalDate', '')" title="ล้างวันที่">✕</button>
+                        @click="approvalDatePicker = ''; emit('update:approvalDate', '')" title="ล้างวันที่">
+                        <X :size="14" />
+                    </button>
                 </div>
                 <span v-if="approvalDate" class="field-hint date-thai-preview">
-                    📅 {{ approvalDate }}
+                    <CalendarDays :size="13" /> {{ approvalDate }}
                 </span>
                 <span v-else class="field-hint">ปล่อยว่าง = ใช้วันที่รับของจากบิลแรก</span>
             </div>
@@ -306,7 +319,9 @@ function saveToHistory() {
 
         <!-- Budget preview calculation -->
         <div v-if="previewData && previewData.row_count > 0" class="budget-preview">
-            <div class="budget-preview-title">🔢 ตัวอย่างการคำนวณ (บิลแรก)</div>
+            <div class="budget-preview-title">
+                <Calculator :size="14" /> ตัวอย่างการคำนวณ (บิลแรก)
+            </div>
             <div class="budget-row">
                 <span class="budget-label">ยอดเงินจัดสรร</span>
                 <span class="budget-val">{{ formatMoney(budgetTotal) }}</span>
@@ -327,46 +342,51 @@ function saveToHistory() {
             </div>
         </div>
 
-        <div class="info-box">
-            💡 ระบบจะคำนวณยอดงบประมาณแบบ Running ต่อเนื่องทุกบิล:
-            ยอดคงเหลือ[i] = ยอดคงเหลือ[i-1] − เบิกจ่ายครั้งนี้[i]
-            ทุกค่าเป็นตัวเลขคงที่ใน PDF ไม่มีสูตร (ไม่เกิด #REF!)
-        </div>
-
         <!-- Generate button -->
         <div class="actions">
             <button class="btn btn-primary btn-lg" :disabled="!canGenerate || loading" @click="generate">
                 <span v-if="loading" class="spinner"></span>
-                {{ loading ? "กำลังสร้าง PDF..." : "📄 สร้าง PDF เบิกยาปะหน้า" }}
+                <FileOutput v-if="!loading" :size="16" />
+                {{ loading ? "กำลังสร้าง PDF..." : "สร้าง PDF เบิกยาปะหน้า" }}
             </button>
         </div>
 
         <div v-if="error" class="status-msg status-error" style="margin-top:12px">
-            ❌ {{ error }}
+            <XCircle :size="14" /> {{ error }}
         </div>
     </div>
 
     <!-- Result -->
     <div v-if="result" class="card">
-        <div class="card-title">✅ สร้าง PDF สำเร็จ</div>
+        <div class="card-title">
+            <CheckCircle :size="17" /> สร้าง PDF สำเร็จ
+        </div>
 
         <div class="result-card">
-            <div class="result-card-title">📄 ไฟล์ที่สร้าง</div>
+            <div class="result-card-title">
+                <FileOutput :size="15" /> ไฟล์ที่สร้าง
+            </div>
             <ul class="file-list">
                 <li v-for="f in result.files" :key="f">
-                    📄 <code>{{ fileName(f) }}</code>
+                    <FileOutput :size="14" /> <code>{{ fileName(f) }}</code>
                     <span class="file-path">{{ f }}</span>
                 </li>
             </ul>
             <div class="result-stats">
-                <span class="stat-chip">📦 {{ result.total_rows }} หน้า/บิล</span>
-                <span class="stat-chip money">💰 {{ formatMoney(result.total_amount) }} บาท</span>
+                <span class="stat-chip">
+                    <Package :size="13" /> {{ result.total_rows }} หน้า/บิล
+                </span>
+                <span class="stat-chip money">
+                    <Banknote :size="13" /> {{ formatMoney(result.total_amount) }} บาท
+                </span>
             </div>
         </div>
 
         <!-- Carry-forward info -->
         <div class="carry-box" style="margin-top:16px">
-            <div class="carry-box-title">➡️ ค่าสำหรับรอบถัดไป (Carry-Forward)</div>
+            <div class="carry-box-title">
+                <ArrowRight :size="15" /> ค่าสำหรับรอบถัดไป (Carry-Forward)
+            </div>
             <div class="carry-grid">
                 <div class="carry-item">
                     <span class="carry-label">ยอดงบประมาณที่จัดสรร</span>
@@ -381,7 +401,7 @@ function saveToHistory() {
 
         <div class="save-actions" style="margin-top:16px">
             <button class="btn btn-success" @click="saveToHistory">
-                💾 บันทึกรอบนี้สู่ประวัติ
+                <Save :size="15" /> บันทึกรอบนี้สู่ประวัติ
             </button>
         </div>
     </div>

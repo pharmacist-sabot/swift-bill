@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { useToast } from "../composables/useToast";
+import { FileText, BarChart3, AlertTriangle, Hash, Info, Eye, XCircle, Pencil, FileSpreadsheet, CheckCircle, ArrowRight, Save, Package, Banknote } from 'lucide-vue-next'
 
 interface DbConfig {
     host: string;
@@ -238,15 +239,19 @@ function saveToHistory() {
 
     <!-- Info banner -->
     <div class="card info-banner">
-        <div class="banner-title">📋 ส่งหนี้เบิกยา (Invoice Submission List)</div>
+        <div class="banner-title">
+            <FileText :size="17" /> ส่งหนี้เบิกยา (Invoice Submission List)
+        </div>
         <div class="banner-desc">สร้างรายการส่งหนี้สินและเอกสารเบิกเงิน</div>
     </div>
 
     <!-- Data summary from query -->
     <div class="card">
-        <div class="card-title">📊 ข้อมูลที่จะใช้สร้างรายงาน</div>
+        <div class="card-title">
+            <BarChart3 :size="17" /> ข้อมูลที่จะใช้สร้างรายงาน
+        </div>
         <div v-if="!previewData" class="no-data">
-            ⚠️ ยังไม่มีข้อมูล — กรุณาไปที่แท็บ 🔍 ดึงข้อมูล ก่อน
+            <AlertTriangle :size="14" /> ยังไม่มีข้อมูล — กรุณาไปที่แท็บ ดึงข้อมูล ก่อน
         </div>
         <div v-else>
             <div class="preview-summary">
@@ -268,7 +273,9 @@ function saveToHistory() {
 
     <!-- Report params -->
     <div class="card">
-        <div class="card-title">🔢 ตั้งค่าเลขทะเบียนคุม</div>
+        <div class="card-title">
+            <Hash :size="17" /> ตั้งค่าเลขทะเบียนคุม
+        </div>
         <div class="card-desc">ค่าเหล่านี้ต่อเนื่องจากรอบก่อน — สามารถโหลดจากประวัติรอบได้</div>
 
         <div class="form-grid">
@@ -283,7 +290,7 @@ function saveToHistory() {
             <div class="form-group">
                 <label>รอบที่</label>
                 <input type="text" :value="round" readonly />
-                <span class="field-hint">กำหนดที่แท็บ 🔍 ดึงข้อมูล</span>
+                <span class="field-hint">กำหนดที่แท็บ ดึงข้อมูล</span>
             </div>
             <div class="form-group">
                 <label>เลขทะเบียนคุมเริ่มต้น</label>
@@ -300,8 +307,9 @@ function saveToHistory() {
             </div>
         </div>
 
-        <div class="info-box">
-            💡 แต่ละสมุดทะเบียนมี 10 ลำดับ (0–9) เมื่อครบจะขึ้นเล่มใหม่โดยอัตโนมัติ
+        <div class="info-box" style="display:flex; align-items:flex-start; gap:8px;">
+            <Info :size="14" style="flex-shrink:0" /> แต่ละสมุดทะเบียนมี 10 ลำดับ (0–9)
+            เมื่อครบจะขึ้นเล่มใหม่โดยอัตโนมัติ
             เช่น 69ภ12 ลำดับ 8 → 69ภ12(8), 69ภ12(9), 69ภ13(0), …
         </div>
 
@@ -309,18 +317,21 @@ function saveToHistory() {
         <div class="actions">
             <button class="btn btn-primary btn-lg" :disabled="!canPreview || previewLoading" @click="previewReport">
                 <span v-if="previewLoading" class="spinner"></span>
-                {{ previewLoading ? "กำลังโหลดตัวอย่าง..." : "👁️ แสดงตัวอย่าง" }}
+                <Eye v-if="!previewLoading" :size="16" />
+                {{ previewLoading ? "กำลังโหลดตัวอย่าง..." : "แสดงตัวอย่าง" }}
             </button>
         </div>
 
         <div v-if="previewError" class="status-msg status-error" style="margin-top:12px">
-            ❌ {{ previewError }}
+            <XCircle :size="14" /> {{ previewError }}
         </div>
     </div>
 
     <!-- Editable preview table -->
     <div v-if="editableRows.length > 0" class="card">
-        <div class="card-title">✏️ ตัวอย่างข้อมูล (แก้ไขได้)</div>
+        <div class="card-title">
+            <Pencil :size="17" /> ตัวอย่างข้อมูล (แก้ไขได้)
+        </div>
         <div class="card-desc">ตรวจสอบและแก้ไขข้อมูลก่อนส่งออก Excel</div>
 
         <div class="table-wrap">
@@ -372,36 +383,47 @@ function saveToHistory() {
         <div class="actions">
             <button class="btn btn-success btn-lg" :disabled="!canExport || exportLoading" @click="exportExcel">
                 <span v-if="exportLoading" class="spinner"></span>
-                {{ exportLoading ? "กำลังส่งออก Excel..." : "📊 ส่งออก Excel" }}
+                <FileSpreadsheet v-if="!exportLoading" :size="16" />
+                {{ exportLoading ? "กำลังส่งออก Excel..." : "ส่งออก Excel" }}
             </button>
         </div>
 
         <div v-if="exportError" class="status-msg status-error" style="margin-top:12px">
-            ❌ {{ exportError }}
+            <XCircle :size="14" /> {{ exportError }}
         </div>
     </div>
 
     <!-- Export result -->
     <div v-if="exportedFile" class="card">
-        <div class="card-title">✅ ส่งออก Excel สำเร็จ</div>
+        <div class="card-title">
+            <CheckCircle :size="17" /> ส่งออก Excel สำเร็จ
+        </div>
 
         <div class="result-card">
-            <div class="result-card-title">📊 ไฟล์ที่สร้าง</div>
+            <div class="result-card-title">
+                <FileSpreadsheet :size="15" /> ไฟล์ที่สร้าง
+            </div>
             <ul class="file-list">
                 <li>
-                    📊 <code>{{ fileName(exportedFile) }}</code>
+                    <FileSpreadsheet :size="14" /> <code>{{ fileName(exportedFile) }}</code>
                     <span class="file-path">{{ exportedFile }}</span>
                 </li>
             </ul>
             <div class="result-stats">
-                <span class="stat-chip">📦 {{ editableRows.length }} รายการ</span>
-                <span class="stat-chip money">💰 {{ formatMoney(exportedTotal) }} บาท</span>
+                <span class="stat-chip">
+                    <Package :size="13" /> {{ editableRows.length }} รายการ
+                </span>
+                <span class="stat-chip money">
+                    <Banknote :size="13" /> {{ formatMoney(exportedTotal) }} บาท
+                </span>
             </div>
         </div>
 
         <!-- Carry-forward info -->
         <div v-if="carryForward" class="carry-box" style="margin-top:16px">
-            <div class="carry-box-title">➡️ ค่าสำหรับรอบถัดไป (Carry-Forward)</div>
+            <div class="carry-box-title">
+                <ArrowRight :size="15" /> ค่าสำหรับรอบถัดไป (Carry-Forward)
+            </div>
             <div class="carry-grid">
                 <div class="carry-item">
                     <span class="carry-label">เลขทะเบียนคุมถัดไป</span>
@@ -416,7 +438,7 @@ function saveToHistory() {
 
         <div class="save-actions" style="margin-top:16px">
             <button class="btn btn-success" @click="saveToHistory">
-                💾 บันทึกรอบนี้สู่ประวัติ
+                <Save :size="15" /> บันทึกรอบนี้สู่ประวัติ
             </button>
         </div>
     </div>
