@@ -24,5 +24,5 @@ tokio-util = { version = "0.7", features = ["compat"] }
 chrono = { version = "0.4", features = ["serde"] }
 printpdf = "0.9.1"
 rust_xlsxwriter = "0"
-lopdf = "0.32"
+lopdf = "0.40"
 ttf-parser = "0.21"
