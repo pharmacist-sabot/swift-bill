@@ -39,6 +39,10 @@ const DATE_X: f64 = 275.55;
 /// Baseline Y of the "ที่/วันที่" row.
 const DATE_Y: f64 = 721.68;
 
+/// Vertical offset (pt) added to all overlay baselines to lift printed
+/// data off the template lines (positive = shift UP / top).
+const VERTICAL_SHIFT: f64 = 14.0;
+
 /// X where the company name begins (after "จาก" prefix on the แผนงาน line).
 const COMPANY_X: f64 = 270.95;
 /// Baseline Y of the แผนงาน/โครงการ row.
@@ -151,7 +155,7 @@ fn build_overlay(page: &CoverLetterPage, face: &Face) -> Vec<u8> {
   // 1. วันที่  ─ left-aligned at the start of the blank area
   {
     let gids = text_to_gid_bytes(&page.date_text, face);
-    write_text_block(&mut buf, FONT_RESOURCE, TEXT_PT, DATE_X, DATE_Y, &gids);
+    write_text_block(&mut buf, FONT_RESOURCE, TEXT_PT, DATE_X, DATE_Y + 2.0, &gids);
   }
 
   // 2. Company name (แผนงาน…จาก ________)  ─ left-aligned
@@ -162,7 +166,7 @@ fn build_overlay(page: &CoverLetterPage, face: &Face) -> Vec<u8> {
       FONT_RESOURCE,
       TEXT_PT,
       COMPANY_X,
-      COMPANY_Y,
+      COMPANY_Y + VERTICAL_SHIFT,
       &gids,
     );
   }
@@ -182,7 +186,7 @@ fn build_overlay(page: &CoverLetterPage, face: &Face) -> Vec<u8> {
     // Clamp so text never overflows outside the column on the left.
     let x = (COL_RIGHTS[i] - w).max(COL_LEFTS[i]);
     let gids = text_to_gid_bytes(&text, face);
-    write_text_block(&mut buf, FONT_RESOURCE, NUM_PT, x, VALUE_Y, &gids);
+    write_text_block(&mut buf, FONT_RESOURCE, NUM_PT, x, VALUE_Y + VERTICAL_SHIFT, &gids);
   }
 
   buf
