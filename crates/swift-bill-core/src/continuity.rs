@@ -32,7 +32,9 @@ pub fn last_remaining_balance(fiscal_year: i32, month: u32, history: &RoundHisto
   history
     .entries
     .iter()
-    .filter(|e| e.fiscal_year == fiscal_year && e.month == month && e.remaining_balance.abs() > 0.01)
+    .filter(|e| {
+      e.fiscal_year == fiscal_year && e.month == month && e.remaining_balance.abs() > 0.01
+    })
     .max_by_key(|e| (e.round, e.created_at.clone()))
     .map(|e| e.remaining_balance)
 }
@@ -50,8 +52,9 @@ pub fn validate_budget_carry_forward(
   tolerance: f64,
 ) -> BudgetValidation {
   let expected = last_remaining_balance(fiscal_year, month, history);
-  let mismatch = expected
-    .map_or(false, |exp| (exp - entered_previous_balance).abs() > tolerance);
+  let mismatch = expected.map_or(false, |exp| {
+    (exp - entered_previous_balance).abs() > tolerance
+  });
   BudgetValidation {
     expected_previous_balance: expected,
     entered_previous_balance,

@@ -18,8 +18,8 @@ use swift_bill_core::{
   CarryForward, CoverLettersParams, DbConfig, GenerateResult, InvoiceSubmissionExcelParams,
   InvoiceSubmissionParams, InvoiceSubmissionPreview, NormalizeReceivingStartParams,
   NumberLockBatchParams, NumberLockEntry, PreviewData, ReceivingSummaryExcelParams,
-  ReceivingSummaryGenerateResult, ReceivingSummaryParams, ReceivingSummaryPreview,
-  RoundHistory, RoundHistoryEntry, RoundValidation, ValidateRoundParams,
+  ReceivingSummaryGenerateResult, ReceivingSummaryParams, ReceivingSummaryPreview, RoundHistory,
+  RoundHistoryEntry, RoundValidation, ValidateRoundParams,
 };
 use swift_bill_db::fetch_invoices;
 use swift_bill_excel::{generate_invoice_submission_excel, generate_receiving_summary_excel};
@@ -316,8 +316,11 @@ async fn validate_round_params(
   );
 
   // Projected next values for the continuity preview card.
-  let (next_reg_no, next_running) =
-    swift_bill_core::reports::compute_next_reg(&params.start_reg_no, params.start_running, params.invoice_count);
+  let (next_reg_no, next_running) = swift_bill_core::reports::compute_next_reg(
+    &params.start_reg_no,
+    params.start_running,
+    params.invoice_count,
+  );
 
   let carry_forward = CarryForward {
     next_reg_no,

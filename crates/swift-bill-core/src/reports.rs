@@ -578,7 +578,9 @@ mod tests {
 #[cfg(test)]
 mod golden_tests {
   use super::*;
-  use crate::models::{CoverLettersParams, DbConfig, InvoiceRow, InvoiceSubmissionParams, ReceivingSummaryParams};
+  use crate::models::{
+    CoverLettersParams, DbConfig, InvoiceRow, InvoiceSubmissionParams, ReceivingSummaryParams,
+  };
   use crate::numbering::allocate_receiving_numbers;
   use chrono::NaiveDate;
 
@@ -745,7 +747,8 @@ mod golden_tests {
     // Preview renders these rows; generate persists the same rows.
     let preview_rows = process_invoice_submission(&invoices, &params);
     // Generate computes its carry-forward via compute_next_reg (preview does too).
-    let (next_reg_no, next_running) = compute_next_reg(&params.start_reg_no, params.start_running, n);
+    let (next_reg_no, next_running) =
+      compute_next_reg(&params.start_reg_no, params.start_running, n);
 
     let last = preview_rows.last().unwrap();
     let (last_prefix, last_num) = parse_reg_no(&last.reg_no);
@@ -773,7 +776,8 @@ mod golden_tests {
       approval_date: Some("15 ม.ค. 69".into()),
       output_dir: "/tmp".into(),
     };
-    let allocation = allocate_receiving_numbers(2569, params.start_po_no, params.start_purchase_no, n, &[]);
+    let allocation =
+      allocate_receiving_numbers(2569, params.start_po_no, params.start_purchase_no, n, &[]);
     let rows = process_receiving_summary_with_numbers(&invoices, &params, &allocation.assignments);
 
     // Preview and generate both derive these next values identically.

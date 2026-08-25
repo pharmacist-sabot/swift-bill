@@ -471,10 +471,34 @@ mod tests {
     // 4 assignments from pos 8 should skip 9 and (13,0), yielding 8,(13,1),(13,2),(13,3).
     let alloc = allocate_register_numbers(2569, "69ภ12", 8, 4, &locks);
     assert_eq!(alloc.assignments.len(), 4);
-    assert_eq!(alloc.assignments[0], RegisterAssignment { reg_no: "69ภ12".into(), running_in_reg: 8 });
-    assert_eq!(alloc.assignments[1], RegisterAssignment { reg_no: "69ภ13".into(), running_in_reg: 1 });
-    assert_eq!(alloc.assignments[2], RegisterAssignment { reg_no: "69ภ13".into(), running_in_reg: 2 });
-    assert_eq!(alloc.assignments[3], RegisterAssignment { reg_no: "69ภ13".into(), running_in_reg: 3 });
+    assert_eq!(
+      alloc.assignments[0],
+      RegisterAssignment {
+        reg_no: "69ภ12".into(),
+        running_in_reg: 8
+      }
+    );
+    assert_eq!(
+      alloc.assignments[1],
+      RegisterAssignment {
+        reg_no: "69ภ13".into(),
+        running_in_reg: 1
+      }
+    );
+    assert_eq!(
+      alloc.assignments[2],
+      RegisterAssignment {
+        reg_no: "69ภ13".into(),
+        running_in_reg: 2
+      }
+    );
+    assert_eq!(
+      alloc.assignments[3],
+      RegisterAssignment {
+        reg_no: "69ภ13".into(),
+        running_in_reg: 3
+      }
+    );
     assert_eq!(alloc.next_reg_no, "69ภ13");
     assert_eq!(alloc.next_running, 4);
   }
