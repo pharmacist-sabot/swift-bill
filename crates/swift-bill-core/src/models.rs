@@ -230,10 +230,37 @@ pub struct NumberLockEntry {
   pub request_no: u32,
   pub report_no: u32,
   pub purchase_no: u32,
+  /// Optional locked register starting point (เลขทะเบียนคุม), e.g. `"69ภ12"`.
+  /// When present, the locked slot is `(start_reg_no, running)`.
+  #[serde(default)]
+  pub start_reg_no: Option<String>,
+  /// Running slot (0–9) within the locked register, required when
+  /// `start_reg_no` is set.
+  #[serde(default)]
+  pub running: Option<u32>,
   pub reason: String,
   #[serde(default)]
   pub note: String,
   pub created_at: String,
+}
+
+/// A register slot (เลขทะเบียนคุม) that collides with a locked entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegisterConflict {
+  /// Register number string, e.g. `"69ภ12"`.
+  pub reg_no: String,
+  /// Running position (0–9) within the register.
+  pub running_in_reg: u32,
+  /// Reason copied from the matching lock entry.
+  pub reason: String,
+}
+
+/// Diagnostic result of a register-number allocation that skips locked slots.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegisterNumberingInfo {
+  pub start_reg_no: String,
+  pub start_running: u32,
+  pub skipped_conflicts: Vec<RegisterConflict>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -295,6 +322,13 @@ pub struct NumberLockBatchParams {
   pub reason: String,
   #[serde(default)]
   pub note: String,
+  /// Optional register starting point (เลขทะเบียนคุม) to lock, e.g. `"69ภ12"`.
+  #[serde(default)]
+  pub start_reg_no: Option<String>,
+  /// Running slot (0–9) within the locked register, required when
+  /// `start_reg_no` is set.
+  #[serde(default)]
+  pub running: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -302,4 +336,44 @@ pub struct NormalizeReceivingStartParams {
   pub fiscal_year: i32,
   pub start_po_no: u32,
   pub start_purchase_no: u32,
+}
+
+/// Parameters for the round pre-generation validation command.
+///
+/// Carries only the values the user would enter for a new round plus the
+/// planned invoice count (already known from the query preview), so validation
+/// is a pure check that needs no database access.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateRoundParams {
+  pub fiscal_year: i32,
+  pub month: u32,
+  pub round: u32,
+  /// Format: e.g., "69ภ12"
+  pub start_reg_no: String,
+  /// Available slot (0–9)
+  pub start_running: u32,
+  /// Starting number for request and approval reports
+  pub start_po_no: u32,
+  /// Starting number for purchase orders (independent counter)
+  pub start_purchase_no: u32,
+  /// Entered remaining budget (previous_balance) for the new round
+  pub previous_balance: f64,
+  /// Number of invoices planned for this round
+  pub invoice_count: u32,
+}
+
+/// Result of a round pre-generation validation: every continuity check the
+/// app can perform before generating a single PDF.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoundValidation {
+  /// Register slots (เลขทะเบียนคุม) that would collide with a locked entry.
+  pub register_conflicts: Vec<RegisterConflict>,
+  /// Diagnostic info for the register-number start (after skipping conflicts).
+  pub register_numbering_info: RegisterNumberingInfo,
+  /// Diagnostic info for the receiving-number start (after skipping locks).
+  pub receiving_numbering_info: ReceivingNumberingInfo,
+  /// Budget carry-forward check against the last recorded round.
+  pub budget: crate::continuity::BudgetValidation,
+  /// Projected next values for the round, for the continuity preview card.
+  pub carry_forward: CarryForward,
 }

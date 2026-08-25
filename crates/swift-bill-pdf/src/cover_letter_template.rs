@@ -155,7 +155,14 @@ fn build_overlay(page: &CoverLetterPage, face: &Face) -> Vec<u8> {
   // 1. วันที่  ─ left-aligned at the start of the blank area
   {
     let gids = text_to_gid_bytes(&page.date_text, face);
-    write_text_block(&mut buf, FONT_RESOURCE, TEXT_PT, DATE_X, DATE_Y + 2.0, &gids);
+    write_text_block(
+      &mut buf,
+      FONT_RESOURCE,
+      TEXT_PT,
+      DATE_X,
+      DATE_Y + 2.0,
+      &gids,
+    );
   }
 
   // 2. Company name (แผนงาน…จาก ________)  ─ left-aligned
@@ -186,7 +193,14 @@ fn build_overlay(page: &CoverLetterPage, face: &Face) -> Vec<u8> {
     // Clamp so text never overflows outside the column on the left.
     let x = (COL_RIGHTS[i] - w).max(COL_LEFTS[i]);
     let gids = text_to_gid_bytes(&text, face);
-    write_text_block(&mut buf, FONT_RESOURCE, NUM_PT, x, VALUE_Y + VERTICAL_SHIFT, &gids);
+    write_text_block(
+      &mut buf,
+      FONT_RESOURCE,
+      NUM_PT,
+      x,
+      VALUE_Y + VERTICAL_SHIFT,
+      &gids,
+    );
   }
 
   buf

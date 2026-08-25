@@ -11,6 +11,7 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
 
+pub mod continuity;
 pub mod date;
 pub mod models;
 pub mod numbering;

@@ -571,3 +571,250 @@ mod tests {
     }
   }
 }
+
+/// Golden snapshots: a fixed, hand-computed baseline for all three reports so a
+/// behavioural regression in numbering, totals, or budget math fails loudly and
+/// deterministically. These double as the reference for the report outputs.
+#[cfg(test)]
+mod golden_tests {
+  use super::*;
+  use crate::models::{
+    CoverLettersParams, DbConfig, InvoiceRow, InvoiceSubmissionParams, ReceivingSummaryParams,
+  };
+  use crate::numbering::allocate_receiving_numbers;
+  use chrono::NaiveDate;
+
+  fn db() -> DbConfig {
+    DbConfig {
+      host: "localhost".into(),
+      port: 1433,
+      database: "test".into(),
+      username: "sa".into(),
+      password: "pass".into(),
+    }
+  }
+
+  fn golden_invoices() -> Vec<InvoiceRow> {
+    vec![
+      InvoiceRow {
+        invoice_no: "INV001".into(),
+        vendor_code: "V001".into(),
+        company_name: "บริษัท ก".into(),
+        company_keyword: "G".into(),
+        total_cost: 1_000.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 3).unwrap(),
+        category: "ยา".into(),
+      },
+      InvoiceRow {
+        invoice_no: "INV002".into(),
+        vendor_code: "V002".into(),
+        company_name: "บริษัท ข".into(),
+        company_keyword: "K".into(),
+        total_cost: 2_500.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 5).unwrap(),
+        category: "ยา".into(),
+      },
+      InvoiceRow {
+        invoice_no: "INV003".into(),
+        vendor_code: "V003".into(),
+        company_name: "บริษัท ค".into(),
+        company_keyword: "C".into(),
+        total_cost: 500.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 7).unwrap(),
+        category: "วัสดุเภสัชกรรม".into(),
+      },
+    ]
+  }
+
+  #[test]
+  fn golden_invoice_submission() {
+    let invoices = golden_invoices();
+    let params = InvoiceSubmissionParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      output_dir: "/tmp".into(),
+    };
+    let rows = process_invoice_submission(&invoices, &params);
+
+    assert_eq!(rows.len(), 3);
+    let total: f64 = rows.iter().map(|r| r.total_amount).sum();
+    assert!((total - 4_000.0).abs() < 1e-9);
+    assert_eq!(rows[0].seq, 1);
+    assert_eq!(rows[0].reg_no, "69ภ12");
+    assert_eq!(rows[0].running_in_reg, 0);
+    assert_eq!(rows[1].reg_no, "69ภ12");
+    assert_eq!(rows[1].running_in_reg, 1);
+    assert_eq!(rows[2].reg_no, "69ภ12");
+    assert_eq!(rows[2].running_in_reg, 2);
+    assert_eq!(rows[0].company_name, "บริษัท ก");
+    assert_eq!(rows[2].category, "วัสดุเภสัชกรรม");
+  }
+
+  #[test]
+  fn golden_receiving_summary() {
+    let invoices = golden_invoices();
+    let params = ReceivingSummaryParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_po_no: 10,
+      start_purchase_no: 5,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let rows = process_receiving_summary(&invoices, &params);
+
+    assert_eq!(rows.len(), 3);
+    let total: f64 = rows.iter().map(|r| r.total_amount).sum();
+    assert!((total - 4_000.0).abs() < 1e-9);
+    assert_eq!(rows[0].request_no, 10);
+    assert_eq!(rows[0].report_no, 11);
+    assert_eq!(rows[0].po_no, 5);
+    assert_eq!(rows[1].request_no, 12);
+    assert_eq!(rows[1].report_no, 13);
+    assert_eq!(rows[1].po_no, 6);
+    assert_eq!(rows[2].request_no, 14);
+    assert_eq!(rows[2].report_no, 15);
+    assert_eq!(rows[2].po_no, 7);
+    assert_eq!(rows[0].reg_no, "69ภ12");
+    assert_eq!(rows[2].running_in_reg, 2);
+  }
+
+  #[test]
+  fn golden_cover_letters_budget_math() {
+    let invoices = golden_invoices();
+    let params = CoverLettersParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      budget_total: 100_000.0,
+      previous_balance: 20_000.0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let pages = process_cover_letters(&invoices, &params);
+
+    assert_eq!(pages.len(), 3);
+    // Page 1: 20,000 - 1,000 = 19,000 remaining.
+    assert!((pages[0].previous_balance - 20_000.0).abs() < 1e-9);
+    assert!((pages[0].previous_spent - 80_000.0).abs() < 1e-9);
+    assert!((pages[0].current_amount - 1_000.0).abs() < 1e-9);
+    assert!((pages[0].remaining_balance - 19_000.0).abs() < 1e-9);
+    // Page 2: 19,000 - 2,500 = 16,500 remaining.
+    assert!((pages[1].previous_balance - 19_000.0).abs() < 1e-9);
+    assert!((pages[1].previous_spent - 81_000.0).abs() < 1e-9);
+    assert!((pages[1].remaining_balance - 16_500.0).abs() < 1e-9);
+    // Page 3: 16,500 - 500 = 16,000 remaining.
+    assert!((pages[2].previous_balance - 16_500.0).abs() < 1e-9);
+    assert!((pages[2].remaining_balance - 16_000.0).abs() < 1e-9);
+    // Carry-forward (last remaining balance) for the next round.
+    assert!((pages.last().unwrap().remaining_balance - 16_000.0).abs() < 1e-9);
+  }
+
+  // Preview/generate parity: the carry-forward values the preview screen
+  // reports must be exactly what the generate path persists for the next round,
+  // otherwise continuity breaks silently between the two flows.
+
+  #[test]
+  fn parity_register_carry_forward() {
+    let invoices = golden_invoices();
+    let n = invoices.len() as u32;
+    let params = InvoiceSubmissionParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      output_dir: "/tmp".into(),
+    };
+    // Preview renders these rows; generate persists the same rows.
+    let preview_rows = process_invoice_submission(&invoices, &params);
+    // Generate computes its carry-forward via compute_next_reg (preview does too).
+    let (next_reg_no, next_running) =
+      compute_next_reg(&params.start_reg_no, params.start_running, n);
+
+    let last = preview_rows.last().unwrap();
+    let (last_prefix, last_num) = parse_reg_no(&last.reg_no);
+    let expected_num = last_num + (last.running_in_reg + 1) / 10;
+    let expected_running = (last.running_in_reg + 1) % 10;
+    assert_eq!(next_reg_no, format_reg_no(&last_prefix, expected_num));
+    assert_eq!(next_running, expected_running);
+  }
+
+  #[test]
+  fn parity_receiving_carry_forward() {
+    let invoices = golden_invoices();
+    let n = invoices.len() as u32;
+    let params = ReceivingSummaryParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_po_no: 10,
+      start_purchase_no: 5,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let allocation =
+      allocate_receiving_numbers(2569, params.start_po_no, params.start_purchase_no, n, &[]);
+    let rows = process_receiving_summary_with_numbers(&invoices, &params, &allocation.assignments);
+
+    // Preview and generate both derive these next values identically.
+    assert_eq!(allocation.next_po_no, params.start_po_no + n * 2);
+    assert_eq!(allocation.next_purchase_no, params.start_purchase_no + n);
+    // The next request number must be exactly one past the last report number.
+    assert_eq!(allocation.next_po_no, rows.last().unwrap().report_no + 1);
+  }
+
+  #[test]
+  fn parity_cover_letter_budget_continuity() {
+    // The remaining balance of one batch must feed the next batch's previous_balance.
+    let batch1 = golden_invoices();
+    let params1 = CoverLettersParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      budget_total: 100_000.0,
+      previous_balance: 20_000.0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let pages1 = process_cover_letters(&batch1, &params1);
+    let carry = pages1.last().unwrap().remaining_balance;
+
+    let batch2 = golden_invoices();
+    let params2 = CoverLettersParams {
+      previous_balance: carry,
+      ..params1
+    };
+    let pages2 = process_cover_letters(&batch2, &params2);
+    // Second batch opens with the prior batch's closing balance.
+    assert!((pages2[0].previous_balance - carry).abs() < 1e-9);
+    // And the second batch's first cumulative spent equals budget - carry.
+    assert!((pages2[0].previous_spent - (100_000.0 - carry)).abs() < 1e-9);
+  }
+}
