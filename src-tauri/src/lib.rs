@@ -88,6 +88,7 @@ async fn preview_invoice_submission(
     swift_bill_core::reports::compute_next_reg(&params.start_reg_no, params.start_running, n);
 
   let rows = swift_bill_core::reports::process_invoice_submission(&invoices, &params);
+  swift_bill_core::continuity::reconcile_row_count(invoices.len(), rows.len())?;
   let total_amount: f64 = invoices.iter().map(|i| i.total_cost).sum();
 
   Ok(InvoiceSubmissionPreview {
@@ -168,6 +169,7 @@ async fn preview_receiving_summary(
     &params,
     &allocation.assignments,
   );
+  swift_bill_core::continuity::reconcile_row_count(invoices.len(), rows.len())?;
   let total_amount: f64 = invoices.iter().map(|i| i.total_cost).sum();
 
   Ok(ReceivingSummaryPreview {
@@ -241,6 +243,7 @@ async fn generate_cover_letters(params: CoverLettersParams) -> Result<GenerateRe
   }
 
   let pages = swift_bill_core::reports::process_cover_letters(&invoices, &params);
+  swift_bill_core::continuity::reconcile_row_count(invoices.len(), pages.len())?;
   let remaining_balance = pages
     .last()
     .map(|p| p.remaining_balance)

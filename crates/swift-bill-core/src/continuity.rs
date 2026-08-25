@@ -60,6 +60,21 @@ pub fn validate_budget_carry_forward(
   }
 }
 
+/// Assert that every fetched invoice produced exactly one report row.
+///
+/// A mismatch means an invoice was silently dropped between the query and the
+/// report -- the exact class of error the legacy Excel workflow produced. The
+/// generate/preview commands call this as a guard before writing any output.
+#[must_use]
+pub fn reconcile_row_count(invoice_count: usize, row_count: usize) -> Result<(), String> {
+  if invoice_count != row_count {
+    return Err(format!(
+      "จำนวนแถวไม่ตรงกัน: ดึงข้อมูล {invoice_count} ใบ แต่สร้างรายงานได้ {row_count} แถว (อาจมีบางรายการหายไป)"
+    ));
+  }
+  Ok(())
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -160,5 +175,17 @@ mod tests {
     };
     let v = validate_budget_carry_forward(2569, 1, 3_850_000.0, &history, 0.01);
     assert_eq!(v.expected_previous_balance, Some(3_850_000.0));
+  }
+
+  #[test]
+  fn reconcile_passes_when_counts_match() {
+    assert!(reconcile_row_count(3, 3).is_ok());
+  }
+
+  #[test]
+  fn reconcile_fails_when_an_invoice_is_dropped() {
+    let err = reconcile_row_count(3, 2).unwrap_err();
+    assert!(err.contains('3'));
+    assert!(err.contains('2'));
   }
 }
