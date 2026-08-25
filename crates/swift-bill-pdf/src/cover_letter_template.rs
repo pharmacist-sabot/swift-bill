@@ -423,9 +423,7 @@ pub fn generate(pages: &[CoverLetterPage], params: &CoverLettersParams) -> Resul
 
   let first_page_id = *doc.get_pages().get(&1).ok_or("template has no page 1")?;
 
-  let template_content = doc
-    .get_page_content(first_page_id)
-    .map_err(|e| format!("get page content: {e}"))?;
+  let template_content = doc.get_page_content(first_page_id);
 
   add_font_to_page_resources(&mut doc, first_page_id, FONT_RESOURCE, font_obj_id)?;
 
