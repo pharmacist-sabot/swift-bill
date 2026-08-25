@@ -579,6 +579,7 @@ mod tests {
 mod golden_tests {
   use super::*;
   use crate::models::{CoverLettersParams, DbConfig, InvoiceRow, InvoiceSubmissionParams, ReceivingSummaryParams};
+  use crate::numbering::allocate_receiving_numbers;
   use chrono::NaiveDate;
 
   fn db() -> DbConfig {
@@ -720,5 +721,96 @@ mod golden_tests {
     assert!((pages[2].remaining_balance - 16_000.0).abs() < 1e-9);
     // Carry-forward (last remaining balance) for the next round.
     assert!((pages.last().unwrap().remaining_balance - 16_000.0).abs() < 1e-9);
+  }
+
+  // Preview/generate parity: the carry-forward values the preview screen
+  // reports must be exactly what the generate path persists for the next round,
+  // otherwise continuity breaks silently between the two flows.
+
+  #[test]
+  fn parity_register_carry_forward() {
+    let invoices = golden_invoices();
+    let n = invoices.len() as u32;
+    let params = InvoiceSubmissionParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      output_dir: "/tmp".into(),
+    };
+    // Preview renders these rows; generate persists the same rows.
+    let preview_rows = process_invoice_submission(&invoices, &params);
+    // Generate computes its carry-forward via compute_next_reg (preview does too).
+    let (next_reg_no, next_running) = compute_next_reg(&params.start_reg_no, params.start_running, n);
+
+    let last = preview_rows.last().unwrap();
+    let (last_prefix, last_num) = parse_reg_no(&last.reg_no);
+    let expected_num = last_num + (last.running_in_reg + 1) / 10;
+    let expected_running = (last.running_in_reg + 1) % 10;
+    assert_eq!(next_reg_no, format_reg_no(&last_prefix, expected_num));
+    assert_eq!(next_running, expected_running);
+  }
+
+  #[test]
+  fn parity_receiving_carry_forward() {
+    let invoices = golden_invoices();
+    let n = invoices.len() as u32;
+    let params = ReceivingSummaryParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_po_no: 10,
+      start_purchase_no: 5,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let allocation = allocate_receiving_numbers(2569, params.start_po_no, params.start_purchase_no, n, &[]);
+    let rows = process_receiving_summary_with_numbers(&invoices, &params, &allocation.assignments);
+
+    // Preview and generate both derive these next values identically.
+    assert_eq!(allocation.next_po_no, params.start_po_no + n * 2);
+    assert_eq!(allocation.next_purchase_no, params.start_purchase_no + n);
+    // The next request number must be exactly one past the last report number.
+    assert_eq!(allocation.next_po_no, rows.last().unwrap().report_no + 1);
+  }
+
+  #[test]
+  fn parity_cover_letter_budget_continuity() {
+    // The remaining balance of one batch must feed the next batch's previous_balance.
+    let batch1 = golden_invoices();
+    let params1 = CoverLettersParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      budget_total: 100_000.0,
+      previous_balance: 20_000.0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let pages1 = process_cover_letters(&batch1, &params1);
+    let carry = pages1.last().unwrap().remaining_balance;
+
+    let batch2 = golden_invoices();
+    let params2 = CoverLettersParams {
+      previous_balance: carry,
+      ..params1
+    };
+    let pages2 = process_cover_letters(&batch2, &params2);
+    // Second batch opens with the prior batch's closing balance.
+    assert!((pages2[0].previous_balance - carry).abs() < 1e-9);
+    // And the second batch's first cumulative spent equals budget - carry.
+    assert!((pages2[0].previous_spent - (100_000.0 - carry)).abs() < 1e-9);
   }
 }
