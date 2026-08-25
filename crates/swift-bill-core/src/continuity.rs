@@ -6,9 +6,10 @@
 //! last recorded round and flags any mismatch before generation.
 
 use crate::models::RoundHistory;
+use serde::{Deserialize, Serialize};
 
 /// Result of [`validate_budget_carry_forward`].
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BudgetValidation {
   /// The `remaining_balance` recorded by the most recent prior round for the
   /// same fiscal year + month, if any.

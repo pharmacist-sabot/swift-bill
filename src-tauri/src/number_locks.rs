@@ -8,6 +8,7 @@
 use std::fs;
 use tauri::Manager;
 
+use swift_bill_core::register::{compute_reg_for_item, format_reg_no, parse_reg_no};
 use swift_bill_core::{NumberLockBatchParams, NumberLockEntry, NumberLockStore};
 
 pub fn load_number_locks(app: &tauri::AppHandle) -> Result<Vec<NumberLockEntry>, String> {
@@ -27,40 +28,77 @@ pub fn create_number_locks(
   let created_at = chrono::Utc::now().to_rfc3339();
   let mut created: Vec<NumberLockEntry> = Vec::with_capacity(params.count as usize);
 
-  for offset in 0..params.count {
-    let request_no = params.start_request_no + offset * 2;
-    let report_no = request_no + 1;
-    let purchase_no = params.start_purchase_no + offset;
+  // A register lock (เลขทะเบียนคุม) locks one or more individual slots.
+  if let (Some(reg_no), Some(running)) = (params.start_reg_no.clone(), params.running) {
+    let (prefix, start_num) = parse_reg_no(&reg_no);
+    for offset in 0..params.count {
+      let (num, slot) = compute_reg_for_item(offset, running, start_num);
+      let rno = format_reg_no(&prefix, num);
+      if store.entries.iter().any(|e| {
+        e.fiscal_year == params.fiscal_year
+          && e.start_reg_no.as_deref() == Some(rno.as_str())
+          && e.running == Some(slot)
+      }) {
+        return Err(format!(
+          "เลขทะเบียนคุม {rno} ช่อง {slot} ถูกล็อกไว้แล้ว ({})",
+          params.reason.trim()
+        ));
+      }
+      created.push(NumberLockEntry {
+        id: format!("{}-{}-{}", params.fiscal_year, rno, slot),
+        fiscal_year: params.fiscal_year,
+        request_no: 0,
+        report_no: 0,
+        purchase_no: 0,
+        start_reg_no: Some(rno),
+        running: Some(slot),
+        reason: params.reason.trim().to_string(),
+        note: params.note.trim().to_string(),
+        created_at: created_at.clone(),
+      });
+    }
+    store.entries.extend(created.iter().cloned());
+    sort_entries(&mut store.entries);
+    write_number_lock_store(path, &store)?;
+    Ok(created)
+  } else {
+    for offset in 0..params.count {
+      let request_no = params.start_request_no + offset * 2;
+      let report_no = request_no + 1;
+      let purchase_no = params.start_purchase_no + offset;
 
-    if let Some(existing) = find_overlapping_entry(
-      &store.entries,
-      params.fiscal_year,
-      request_no,
-      report_no,
-      purchase_no,
-    ) {
-      return Err(format!(
-        "เลขชุด {request_no}/{report_no}/{purchase_no} ถูกล็อกไว้แล้ว ({})",
-        existing.reason
-      ));
+      if let Some(existing) = find_overlapping_entry(
+        &store.entries,
+        params.fiscal_year,
+        request_no,
+        report_no,
+        purchase_no,
+      ) {
+        return Err(format!(
+          "เลขชุด {request_no}/{report_no}/{purchase_no} ถูกล็อกไว้แล้ว ({})",
+          existing.reason
+        ));
+      }
+
+      created.push(NumberLockEntry {
+        id: format!("{}-{}-{}", params.fiscal_year, request_no, purchase_no),
+        fiscal_year: params.fiscal_year,
+        request_no,
+        report_no,
+        purchase_no,
+        start_reg_no: None,
+        running: None,
+        reason: params.reason.trim().to_string(),
+        note: params.note.trim().to_string(),
+        created_at: created_at.clone(),
+      });
     }
 
-    created.push(NumberLockEntry {
-      id: format!("{}-{}-{}", params.fiscal_year, request_no, purchase_no),
-      fiscal_year: params.fiscal_year,
-      request_no,
-      report_no,
-      purchase_no,
-      reason: params.reason.trim().to_string(),
-      note: params.note.trim().to_string(),
-      created_at: created_at.clone(),
-    });
+    store.entries.extend(created.iter().cloned());
+    sort_entries(&mut store.entries);
+    write_number_lock_store(path, &store)?;
+    Ok(created)
   }
-
-  store.entries.extend(created.iter().cloned());
-  sort_entries(&mut store.entries);
-  write_number_lock_store(path, &store)?;
-  Ok(created)
 }
 
 pub fn delete_number_lock(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
@@ -86,6 +124,15 @@ fn validate_batch_params(params: &NumberLockBatchParams) -> Result<(), String> {
   }
   if params.reason.trim().is_empty() {
     return Err("กรุณาระบุเหตุผลในการล็อกเลข".to_string());
+  }
+  match (params.start_reg_no.as_ref(), params.running) {
+    (Some(_), None) | (None, Some(_)) => {
+      return Err("การล็อกเลขทะเบียนคุมต้องระบุทั้ง start_reg_no และ running".to_string());
+    }
+    (Some(_), Some(running)) if running > 9 => {
+      return Err("running ต้องอยู่ในช่วง 0–9".to_string());
+    }
+    _ => {}
   }
   Ok(())
 }

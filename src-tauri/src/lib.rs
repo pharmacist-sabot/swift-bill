@@ -19,7 +19,7 @@ use swift_bill_core::{
   InvoiceSubmissionParams, InvoiceSubmissionPreview, NormalizeReceivingStartParams,
   NumberLockBatchParams, NumberLockEntry, PreviewData, ReceivingSummaryExcelParams,
   ReceivingSummaryGenerateResult, ReceivingSummaryParams, ReceivingSummaryPreview,
-  RoundHistoryEntry,
+  RoundHistory, RoundHistoryEntry, RoundValidation, ValidateRoundParams,
 };
 use swift_bill_db::fetch_invoices;
 use swift_bill_excel::{generate_invoice_submission_excel, generate_receiving_summary_excel};
@@ -268,6 +268,71 @@ async fn generate_cover_letters(params: CoverLettersParams) -> Result<GenerateRe
   })
 }
 
+// Round validation command
+
+#[tauri::command]
+async fn validate_round_params(
+  app: tauri::AppHandle,
+  params: ValidateRoundParams,
+) -> Result<RoundValidation, String> {
+  let locks = number_locks::load_number_locks(&app)?;
+  let entries = history::load_history(&app)?;
+  let history_store = RoundHistory { entries };
+
+  // Register-number (เลขทะเบียนคุม) conflicts + normalized start.
+  let register_conflicts = swift_bill_core::numbering::find_register_conflicts(
+    params.fiscal_year,
+    &params.start_reg_no,
+    params.start_running,
+    params.invoice_count,
+    &locks,
+  );
+  let register_numbering_info = swift_bill_core::numbering::normalize_register_start_numbers(
+    params.fiscal_year,
+    &params.start_reg_no,
+    params.start_running,
+    &locks,
+  );
+
+  // Receiving-number (request/report/purchase) allocation, honouring locks.
+  let receiving_allocation = swift_bill_core::numbering::allocate_receiving_numbers(
+    params.fiscal_year,
+    params.start_po_no,
+    params.start_purchase_no,
+    params.invoice_count,
+    &locks,
+  );
+
+  // Budget carry-forward check against the last recorded round.
+  let budget = swift_bill_core::continuity::validate_budget_carry_forward(
+    params.fiscal_year,
+    params.month,
+    params.previous_balance,
+    &history_store,
+    0.01,
+  );
+
+  // Projected next values for the continuity preview card.
+  let (next_reg_no, next_running) =
+    swift_bill_core::reports::compute_next_reg(&params.start_reg_no, params.start_running, params.invoice_count);
+
+  let carry_forward = CarryForward {
+    next_reg_no,
+    next_running,
+    next_po_no: receiving_allocation.next_po_no,
+    next_purchase_no: receiving_allocation.next_purchase_no,
+    remaining_balance: params.previous_balance,
+  };
+
+  Ok(RoundValidation {
+    register_conflicts,
+    register_numbering_info,
+    receiving_numbering_info: receiving_allocation.numbering_info,
+    budget,
+    carry_forward,
+  })
+}
+
 // History commands
 
 #[tauri::command]
@@ -341,6 +406,7 @@ pub fn run() {
       create_number_locks,
       delete_number_lock,
       normalize_receiving_start,
+      validate_round_params,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
