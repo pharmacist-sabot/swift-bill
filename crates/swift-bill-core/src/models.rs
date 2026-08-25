@@ -230,10 +230,37 @@ pub struct NumberLockEntry {
   pub request_no: u32,
   pub report_no: u32,
   pub purchase_no: u32,
+  /// Optional locked register starting point (เลขทะเบียนคุม), e.g. `"69ภ12"`.
+  /// When present, the locked slot is `(start_reg_no, running)`.
+  #[serde(default)]
+  pub start_reg_no: Option<String>,
+  /// Running slot (0–9) within the locked register, required when
+  /// `start_reg_no` is set.
+  #[serde(default)]
+  pub running: Option<u32>,
   pub reason: String,
   #[serde(default)]
   pub note: String,
   pub created_at: String,
+}
+
+/// A register slot (เลขทะเบียนคุม) that collides with a locked entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegisterConflict {
+  /// Register number string, e.g. `"69ภ12"`.
+  pub reg_no: String,
+  /// Running position (0–9) within the register.
+  pub running_in_reg: u32,
+  /// Reason copied from the matching lock entry.
+  pub reason: String,
+}
+
+/// Diagnostic result of a register-number allocation that skips locked slots.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegisterNumberingInfo {
+  pub start_reg_no: String,
+  pub start_running: u32,
+  pub skipped_conflicts: Vec<RegisterConflict>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
