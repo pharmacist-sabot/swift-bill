@@ -571,3 +571,154 @@ mod tests {
     }
   }
 }
+
+/// Golden snapshots: a fixed, hand-computed baseline for all three reports so a
+/// behavioural regression in numbering, totals, or budget math fails loudly and
+/// deterministically. These double as the reference for the report outputs.
+#[cfg(test)]
+mod golden_tests {
+  use super::*;
+  use crate::models::{CoverLettersParams, DbConfig, InvoiceRow, InvoiceSubmissionParams, ReceivingSummaryParams};
+  use chrono::NaiveDate;
+
+  fn db() -> DbConfig {
+    DbConfig {
+      host: "localhost".into(),
+      port: 1433,
+      database: "test".into(),
+      username: "sa".into(),
+      password: "pass".into(),
+    }
+  }
+
+  fn golden_invoices() -> Vec<InvoiceRow> {
+    vec![
+      InvoiceRow {
+        invoice_no: "INV001".into(),
+        vendor_code: "V001".into(),
+        company_name: "บริษัท ก".into(),
+        company_keyword: "G".into(),
+        total_cost: 1_000.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 3).unwrap(),
+        category: "ยา".into(),
+      },
+      InvoiceRow {
+        invoice_no: "INV002".into(),
+        vendor_code: "V002".into(),
+        company_name: "บริษัท ข".into(),
+        company_keyword: "K".into(),
+        total_cost: 2_500.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 5).unwrap(),
+        category: "ยา".into(),
+      },
+      InvoiceRow {
+        invoice_no: "INV003".into(),
+        vendor_code: "V003".into(),
+        company_name: "บริษัท ค".into(),
+        company_keyword: "C".into(),
+        total_cost: 500.0,
+        receive_date: NaiveDate::from_ymd_opt(2026, 1, 7).unwrap(),
+        category: "วัสดุเภสัชกรรม".into(),
+      },
+    ]
+  }
+
+  #[test]
+  fn golden_invoice_submission() {
+    let invoices = golden_invoices();
+    let params = InvoiceSubmissionParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      output_dir: "/tmp".into(),
+    };
+    let rows = process_invoice_submission(&invoices, &params);
+
+    assert_eq!(rows.len(), 3);
+    let total: f64 = rows.iter().map(|r| r.total_amount).sum();
+    assert!((total - 4_000.0).abs() < 1e-9);
+    assert_eq!(rows[0].seq, 1);
+    assert_eq!(rows[0].reg_no, "69ภ12");
+    assert_eq!(rows[0].running_in_reg, 0);
+    assert_eq!(rows[1].reg_no, "69ภ12");
+    assert_eq!(rows[1].running_in_reg, 1);
+    assert_eq!(rows[2].reg_no, "69ภ12");
+    assert_eq!(rows[2].running_in_reg, 2);
+    assert_eq!(rows[0].company_name, "บริษัท ก");
+    assert_eq!(rows[2].category, "วัสดุเภสัชกรรม");
+  }
+
+  #[test]
+  fn golden_receiving_summary() {
+    let invoices = golden_invoices();
+    let params = ReceivingSummaryParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      start_po_no: 10,
+      start_purchase_no: 5,
+      start_reg_no: "69ภ12".into(),
+      start_running: 0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let rows = process_receiving_summary(&invoices, &params);
+
+    assert_eq!(rows.len(), 3);
+    let total: f64 = rows.iter().map(|r| r.total_amount).sum();
+    assert!((total - 4_000.0).abs() < 1e-9);
+    assert_eq!(rows[0].request_no, 10);
+    assert_eq!(rows[0].report_no, 11);
+    assert_eq!(rows[0].po_no, 5);
+    assert_eq!(rows[1].request_no, 12);
+    assert_eq!(rows[1].report_no, 13);
+    assert_eq!(rows[1].po_no, 6);
+    assert_eq!(rows[2].request_no, 14);
+    assert_eq!(rows[2].report_no, 15);
+    assert_eq!(rows[2].po_no, 7);
+    assert_eq!(rows[0].reg_no, "69ภ12");
+    assert_eq!(rows[2].running_in_reg, 2);
+  }
+
+  #[test]
+  fn golden_cover_letters_budget_math() {
+    let invoices = golden_invoices();
+    let params = CoverLettersParams {
+      db_config: db(),
+      date_from: "20260101".into(),
+      date_to: "20260110".into(),
+      year: 2569,
+      month: 1,
+      round: 1,
+      budget_total: 100_000.0,
+      previous_balance: 20_000.0,
+      approval_date: Some("15 ม.ค. 69".into()),
+      output_dir: "/tmp".into(),
+    };
+    let pages = process_cover_letters(&invoices, &params);
+
+    assert_eq!(pages.len(), 3);
+    // Page 1: 20,000 - 1,000 = 19,000 remaining.
+    assert!((pages[0].previous_balance - 20_000.0).abs() < 1e-9);
+    assert!((pages[0].previous_spent - 80_000.0).abs() < 1e-9);
+    assert!((pages[0].current_amount - 1_000.0).abs() < 1e-9);
+    assert!((pages[0].remaining_balance - 19_000.0).abs() < 1e-9);
+    // Page 2: 19,000 - 2,500 = 16,500 remaining.
+    assert!((pages[1].previous_balance - 19_000.0).abs() < 1e-9);
+    assert!((pages[1].previous_spent - 81_000.0).abs() < 1e-9);
+    assert!((pages[1].remaining_balance - 16_500.0).abs() < 1e-9);
+    // Page 3: 16,500 - 500 = 16,000 remaining.
+    assert!((pages[2].previous_balance - 16_500.0).abs() < 1e-9);
+    assert!((pages[2].remaining_balance - 16_000.0).abs() < 1e-9);
+    // Carry-forward (last remaining balance) for the next round.
+    assert!((pages.last().unwrap().remaining_balance - 16_000.0).abs() < 1e-9);
+  }
+}
