@@ -151,11 +151,10 @@ const r2Carry = ref<{
 // Lifecycle
 
 onMounted(async () => {
-    const savedConfig = localStorage.getItem("swiftbill_dbconfig");
+    // Load the encrypted connection settings from the OS-keychain-backed store.
+    const savedConfig = await invoke<DbConfig | null>("load_db_config").catch(() => null);
     if (savedConfig) {
-        try {
-            Object.assign(dbConfig, JSON.parse(savedConfig));
-        } catch (_) { /* ignore corrupt data */ }
+        Object.assign(dbConfig, savedConfig);
     }
     try {
         historyEntries.value = await invoke<RoundHistoryEntry[]>("load_round_history");
@@ -192,9 +191,13 @@ async function deleteEntry(id: string) {
     }
 }
 
-function saveDbConfig() {
-    localStorage.setItem("swiftbill_dbconfig", JSON.stringify(dbConfig));
-    toast.success("บันทึกการตั้งค่าสำเร็จ", "ข้อมูลการเชื่อมต่อถูกบันทึกไว้ในเครื่องแล้ว");
+async function saveDbConfig() {
+    try {
+        await invoke("save_db_config", { config: { ...dbConfig } });
+        toast.success("บันทึกการตั้งค่าสำเร็จ", "ข้อมูลการเชื่อมต่อถูกเข้ารหัสและบันทึกไว้ในเครื่องแล้ว");
+    } catch (e) {
+        toast.error("บันทึกการตั้งค่าล้มเหลว", String(e));
+    }
 }
 
 function handleConnectionStatus(ok: boolean) {
