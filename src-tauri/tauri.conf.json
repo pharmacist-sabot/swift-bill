@@ -14,8 +14,11 @@
       {
         "label": "main",
         "title": "Swift Bill - โรงพยาบาลสระโบสถ์",
-        "width": 1024,
-        "height": 768
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "center": true
       }
     ],
     "security": {
