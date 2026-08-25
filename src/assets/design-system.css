@@ -1,7 +1,7 @@
 /* =============================================================
    Swift Bill — Design System  ·  Warm Hospital Theme
    Extracted from App.vue for centralized management.
-   Improvements per DESIGN.md:
+   Improvements per docs/DESIGN.md:
      - Shadow-as-border technique (no raw CSS border on cards/inputs)
      - Multi-layer card shadow (ring + lift + ambient + inner glow)
      - Font weights: 400 body / 500 interactive / 600 headings

@@ -57,7 +57,7 @@ This will produce native executables in `src-tauri/target/release/bundle`.
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details on how to get started.
 
 ## License
 

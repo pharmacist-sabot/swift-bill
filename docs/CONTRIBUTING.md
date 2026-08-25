@@ -12,7 +12,7 @@ Check the issue tracker to see if the feature or bug you want to work on has alr
 
 ### 2. Set Up the Environment
 
-Make sure you have Bun and Rust installed as described in the `README.md`.
+Make sure you have Bun and Rust installed as described in the `../README.md`.
 
 ### 3. Branching
 
