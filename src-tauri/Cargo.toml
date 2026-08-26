@@ -25,3 +25,5 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", default-features = false, features = ["serde", "std", "clock"] }
 thiserror = "2"
+encryptman = "0.3"
+encryptman-keyring = "0.1"

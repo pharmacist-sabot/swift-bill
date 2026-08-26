@@ -339,11 +339,14 @@ prefill are NOT implemented.
 
 ## Phase 5: Secure Settings & Persistence
 
-- [ ] **Encrypted credential store.** Move `DbConfig` password out of plain
-  settings into the OS keychain (or an AES-256-GCM blob keyed by a
-  keychain-stored key), mirroring warfarin-care's credential posture. The
-  connection test must work without the password ever being written to disk
-  in cleartext.
+- [x] **Encrypted credential store.** The INVS connection settings
+  (`DbConfig`: host, port, database, username, **password**) are persisted only
+  as `encryptman` AES-256-GCM ciphertext whose master key lives in the OS
+  keychain via `encryptman-keyring` (`Vault::new("swift-bill")`). Plaintext
+  never touches disk — the old `localStorage` cleartext persistence in `App.vue`
+  was removed. New Tauri commands `save_db_config` / `load_db_config` /
+  `delete_db_config` back it; the connection test still works without any
+  secret being written in cleartext. See `docs/security.md`.
 - [ ] **Structured round-history store.** Promote `history.rs`'s JSON to a
   versioned, backed-up store (with export/import) so round parameters survive
   app reinstall and can be audited.
@@ -354,7 +357,9 @@ prefill are NOT implemented.
 **Acceptance:** the INVS password is never stored in cleartext; round history
 has export/import and survives reinstall; multiple profiles can be saved.
 
-**Status:** NOT started. Settings currently hold `DbConfig` in plain form.
+**Status:** credential store DONE (DB connection settings encrypted at rest via
+OS keychain + `encryptman`); structured history store and connection profiles
+still NOT started.
 
 ---
 
@@ -529,7 +534,7 @@ should grow with the project:
 | `DESIGN.md` | Design system, tokens, components | Already exists |
 | `ROADMAP.md` | This document | Now |
 | `architecture.md` | Detailed module dependencies, data flow, INVS query plan | Phase 1 |
-| `security.md` | Credential model, keychain plan, read-only posture | Phase 5 |
+| `security.md` | Credential model, keychain plan, read-only posture | Phase 5 (created) |
 | `validation-report.md` | Legacy-Excel reconciliation results, sign-off | Phase 9 |
 | `known-limitations.md` | Intentional differences from legacy Excel | Phase 9 |
 | `a11y-notes.md` | Accessibility audit results, screen-reader log | Phase 6 |

@@ -13,6 +13,8 @@
 
 mod history;
 mod number_locks;
+mod settings;
+mod vault;
 
 use swift_bill_core::{
   CarryForward, CoverLettersParams, DbConfig, GenerateResult, InvoiceSubmissionExcelParams,
@@ -50,6 +52,23 @@ async fn test_connection(config: DbConfig) -> Result<String, String> {
     .await
     .map_err(|e| format!("Query failed: {e}"))?;
   Ok("เชื่อมต่อฐานข้อมูลสำเร็จ".to_string())
+}
+
+// Encrypted connection-settings persistence (Phase 5: credential store)
+
+#[tauri::command]
+async fn save_db_config(app: tauri::AppHandle, config: DbConfig) -> Result<(), String> {
+  settings::save_db_config(&app, config)
+}
+
+#[tauri::command]
+async fn load_db_config(app: tauri::AppHandle) -> Result<Option<DbConfig>, String> {
+  settings::load_db_config(&app)
+}
+
+#[tauri::command]
+async fn delete_db_config(app: tauri::AppHandle) -> Result<(), String> {
+  settings::delete_db_config(&app)
 }
 
 #[tauri::command]
@@ -413,6 +432,9 @@ pub fn run() {
       delete_number_lock,
       normalize_receiving_start,
       validate_round_params,
+      save_db_config,
+      load_db_config,
+      delete_db_config,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
